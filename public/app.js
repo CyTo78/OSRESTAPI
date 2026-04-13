@@ -18,7 +18,7 @@
     APP_CHOICE: "onestream_session_app_choice",
   };
 
-  /** v1.0: localStorage keys are per browser origin (works the same on Azure Static Web Apps). */
+  /** v1.1: localStorage keys are per browser origin (works the same on Azure Static Web Apps). */
   const TASK_HIST_PREFIX = "onestream_v1_hist:";
   const TASK_HIST_MAX = 10;
   const TASK_KIND_SQL = "sql";
@@ -29,6 +29,67 @@
   const TASK_KIND_METHOD = "method";
   const SQL_HISTORY_LEGACY = "onestream_sql_query_history_v1";
   const SQL_HISTORY_KEY_PREFIX_V2 = "onestream_sql_query_history_v2:";
+
+  /** Metadata SQL for Execute sequence (Application DB only). Adjust if your OneStream schema differs. */
+  const DM_SQL_WORKSPACES =
+    "SELECT DISTINCT Name, UniqueID FROM DashboardWorkspace WITH (NOLOCK) ORDER BY Name";
+  /** DataMgmtSequence rows with no workspace use this identifier in many OneStream apps. */
+  const DM_EMPTY_WORKSPACE_GUID = "00000000-0000-0000-0000-000000000000";
+  const DP_SQL_ADAPTERS =
+    "SELECT DISTINCT Name FROM DashboardAdapter WITH (NOLOCK) ORDER BY Name";
+  const DP_SQL_CUBE_VIEWS =
+    "select distinct name from cubeviewitem with (nolock) order by name";
+  const DM_SQL_DM_GROUPS =
+    "SELECT DISTINCT UniqueID, Name FROM DataMgmtGroup WITH (NOLOCK) ORDER BY Name";
+  /** DataMgmtGroup.UniqueID matches DataMgmtStep.DataMgmtGroupID. */
+  function dmSqlStepsForGroupId(dataMgmtGroupUniqueId) {
+    var g = String(dataMgmtGroupUniqueId || "").trim();
+    var esc = g.replace(/'/g, "''");
+    return (
+      "SELECT DISTINCT Name, DataMgmtGroupID FROM DataMgmtStep WITH (NOLOCK) WHERE DataMgmtGroupID = '" +
+      esc +
+      "' ORDER BY Name"
+    );
+  }
+
+  /** DashboardWorkspace.UniqueID matches DataMgmtSequence.workspaceID. */
+  function dmSqlSequencesForWorkspaceId(workspaceIdGuid) {
+    var g = String(workspaceIdGuid || "").trim() || DM_EMPTY_WORKSPACE_GUID;
+    var esc = g.replace(/'/g, "''");
+    return (
+      "SELECT DISTINCT Name FROM DataMgmtSequence WITH (NOLOCK) WHERE workspaceID = '" +
+      esc +
+      "' ORDER BY Name"
+    );
+  }
+
+  /** Static HTML options for Method type; sort by visible label (name) on load. */
+  function sortMethodTypeSelectByName() {
+    var sel = document.getElementById("dp-method-xf-type");
+    if (!sel || sel.options.length < 2) return;
+    var opts = Array.prototype.slice.call(sel.options, 1);
+    opts.sort(function (a, b) {
+      return a.textContent
+        .trim()
+        .localeCompare(b.textContent.trim(), undefined, { sensitivity: "base" });
+    });
+    opts.forEach(function (opt) {
+      sel.appendChild(opt);
+    });
+  }
+
+  function rowField(row, names) {
+    if (!row || typeof row !== "object") return undefined;
+    var lower = {};
+    Object.keys(row).forEach(function (k) {
+      lower[String(k).toLowerCase()] = row[k];
+    });
+    for (var i = 0; i < names.length; i++) {
+      var v = lower[String(names[i]).toLowerCase()];
+      if (v !== undefined) return v;
+    }
+    return undefined;
+  }
 
   var lastSqlPayload = null;
   var lastAdapterPayload = null;
@@ -200,7 +261,7 @@
     } catch (_) {
       /* ignore */
     }
-    sel.innerHTML = '<option value="">— Select —</option>';
+    sel.innerHTML = '<option value="">— Select application —</option>';
     (apps || []).forEach(function (name) {
       var o = document.createElement("option");
       o.value = name;
@@ -246,6 +307,18 @@
     if (ph)
       ph.hidden =
         isSql || isDmSeq || isDmStep || isDpAdapter || isDpCube || isDpMethod;
+    if (isDmSeq) {
+      refreshDmSeqListsFromServer();
+    }
+    if (isDmStep) {
+      refreshDmStepListsFromServer();
+    }
+    if (isDpAdapter) {
+      refreshAdapterNamesFromServer();
+    }
+    if (isDpCube) {
+      refreshCubeViewNamesFromServer();
+    }
   }
 
   function extractTableRows(obj) {
@@ -264,6 +337,478 @@
       }
     }
     return null;
+  }
+
+  /** Run SQL against Application DB only (no side effects from ribbon External / result table). */
+  async function runApplicationSqlMetadata(sqlQuery) {
+    var sel = document.getElementById("app-select");
+    var pat = sessionStorage.getItem(SESSION.PAT);
+    var base = sessionStorage.getItem(SESSION.BASE);
+    if (!sel || !sel.value || !pat || !base) {
+      return { ok: false, values: [] };
+    }
+    try {
+      var r = await apiFetchJson("/api/sql", {
+        pat: pat,
+        baseWebServerUrl: base,
+        applicationName: sel.value,
+        sqlQuery: sqlQuery,
+        dbLocation: "Application",
+        resultDataTableName: "",
+        xfExternalDbConnectionName: "",
+        customSubstVarsAsCommaSeparatedPairs: "",
+        sqlApiVersion: "5.2.0",
+      });
+      if (!r.res.ok) {
+        return { ok: false, values: [] };
+      }
+      var ex = extractTableRows(r.data);
+      if (!ex || !ex.rows || !ex.rows.length) {
+        return { ok: true, values: [] };
+      }
+      /** Preserve API row order (matches SQL ORDER BY); dedupe without re-sorting. */
+      var ordered = [];
+      var seen = {};
+      ex.rows.forEach(function (row) {
+        var v = rowField(row, ["Name", "name"]);
+        if (v !== null && v !== undefined && String(v).trim() !== "") {
+          var s = String(v).trim();
+          if (!seen[s]) {
+            seen[s] = true;
+            ordered.push(s);
+          }
+        }
+      });
+      return { ok: true, values: ordered };
+    } catch (_) {
+      return { ok: false, values: [] };
+    }
+  }
+
+  function ensureSelectHasValue(sel, val) {
+    if (!sel || val === undefined || val === null) return;
+    var v = String(val);
+    if (!v) return;
+    var has = Array.from(sel.options).some(function (o) {
+      return o.value === v;
+    });
+    if (!has) {
+      var ox = document.createElement("option");
+      ox.value = v;
+      ox.textContent = v;
+      sel.appendChild(ox);
+    }
+    sel.value = v;
+  }
+
+  /** @param {{ id: string, name: string }[]} workspaces */
+  function setDmWorkspaceSelectOptions(workspaces) {
+    var sel = document.getElementById("dm-workspace");
+    if (!sel) return;
+    var keepId = String(sel.value || "").trim();
+    var keepName =
+      sel.selectedOptions[0] && sel.selectedOptions[0].value
+        ? String(sel.selectedOptions[0].textContent || "").trim()
+        : "";
+    sel.innerHTML = "";
+    var o0 = document.createElement("option");
+    o0.value = "";
+    o0.textContent = "— None / not from list —";
+    sel.appendChild(o0);
+    (workspaces || []).forEach(function (w) {
+      var o = document.createElement("option");
+      o.value = w.id;
+      o.textContent = w.name;
+      sel.appendChild(o);
+    });
+    if (keepId && Array.from(sel.options).some(function (o) { return o.value === keepId; })) {
+      sel.value = keepId;
+    } else if (keepName) {
+      for (var i = 0; i < sel.options.length; i++) {
+        if (sel.options[i].textContent.trim() === keepName) {
+          sel.selectedIndex = i;
+          break;
+        }
+      }
+    } else {
+      sel.value = "";
+    }
+  }
+
+  function ensureDmWorkspaceSelectByName(sel, name) {
+    if (!sel) return;
+    if (!name) {
+      sel.value = "";
+      return;
+    }
+    var t = String(name).trim();
+    for (var i = 0; i < sel.options.length; i++) {
+      if (sel.options[i].textContent.trim() === t) {
+        sel.selectedIndex = i;
+        return;
+      }
+    }
+    sel.value = "";
+  }
+
+  function setDmSequenceSelectOptions(values, placeholderText) {
+    var sel = document.getElementById("dm-sequence-name");
+    if (!sel) return;
+    var keep = String(sel.value || "").trim();
+    sel.innerHTML = "";
+    var o0 = document.createElement("option");
+    o0.value = "";
+    o0.textContent = placeholderText || "— Select —";
+    sel.appendChild(o0);
+    (values || []).forEach(function (v) {
+      var o = document.createElement("option");
+      o.value = v;
+      o.textContent = v;
+      sel.appendChild(o);
+    });
+    if (keep) {
+      ensureSelectHasValue(sel, keep);
+    } else {
+      sel.value = "";
+    }
+  }
+
+  var dmSeqListLoadSeq = 0;
+  async function refreshDmSequenceOptionsOnly() {
+    var wsEl = document.getElementById("dm-workspace");
+    if (!wsEl) return;
+    var wsId = String(wsEl.value || "").trim();
+    var filterGuid = wsId || DM_EMPTY_WORKSPACE_GUID;
+    var mySeq = ++dmSeqListLoadSeq;
+    var qr = await runApplicationSqlMetadata(dmSqlSequencesForWorkspaceId(filterGuid));
+    if (mySeq !== dmSeqListLoadSeq) return;
+    var placeholder = wsId
+      ? "— Select sequence —"
+      : "— Select sequence (no workspace; workspaceID = all-zero GUID) —";
+    setDmSequenceSelectOptions(qr.values, placeholder);
+  }
+
+  async function runApplicationSqlWorkspaceList() {
+    var sel = document.getElementById("app-select");
+    var pat = sessionStorage.getItem(SESSION.PAT);
+    var base = sessionStorage.getItem(SESSION.BASE);
+    if (!sel || !sel.value || !pat || !base) {
+      return { ok: false, workspaces: [] };
+    }
+    try {
+      var r = await apiFetchJson("/api/sql", {
+        pat: pat,
+        baseWebServerUrl: base,
+        applicationName: sel.value,
+        sqlQuery: DM_SQL_WORKSPACES,
+        dbLocation: "Application",
+        resultDataTableName: "",
+        xfExternalDbConnectionName: "",
+        customSubstVarsAsCommaSeparatedPairs: "",
+        sqlApiVersion: "5.2.0",
+      });
+      if (!r.res.ok) {
+        return { ok: false, workspaces: [] };
+      }
+      var ex = extractTableRows(r.data);
+      if (!ex || !ex.rows || !ex.rows.length) {
+        return { ok: true, workspaces: [] };
+      }
+      var byId = {};
+      ex.rows.forEach(function (row) {
+        var id = rowField(row, ["UniqueID", "uniqueID", "uniqueId"]);
+        var name = rowField(row, ["Name", "name"]);
+        if (id != null && name != null && String(name).trim() !== "") {
+          byId[String(id).trim()] = String(name).trim();
+        }
+      });
+      var workspaces = Object.keys(byId).map(function (id) {
+        return { id: id, name: byId[id] };
+      });
+      workspaces.sort(function (a, b) {
+        return a.name.localeCompare(b.name, undefined, { sensitivity: "base" });
+      });
+      return { ok: true, workspaces: workspaces };
+    } catch (_) {
+      return { ok: false, workspaces: [] };
+    }
+  }
+
+  async function refreshDmSeqListsFromServer() {
+    var sel = document.getElementById("app-select");
+    if (!sel || !sel.value || !hasStoredSession()) {
+      setDmWorkspaceSelectOptions([]);
+      setDmSequenceSelectOptions([], "— Select an application in the ribbon —");
+      return;
+    }
+    var wr = await runApplicationSqlWorkspaceList();
+    setDmWorkspaceSelectOptions(wr.ok ? wr.workspaces : []);
+    await refreshDmSequenceOptionsOnly();
+  }
+
+  function getSelectedDmWorkspaceName() {
+    var ws = document.getElementById("dm-workspace");
+    if (!ws || !ws.value) return "";
+    var opt = ws.selectedOptions[0];
+    return opt ? String(opt.textContent || "").trim() : "";
+  }
+
+  /** @param {{ id: string, name: string }[]} groups */
+  function setDmStepGroupSelectOptions(groups) {
+    var sel = document.getElementById("dm-step-group");
+    if (!sel) return;
+    var keepId = String(sel.value || "").trim();
+    var keepName =
+      sel.selectedOptions[0] && sel.selectedOptions[0].value
+        ? String(sel.selectedOptions[0].textContent || "").trim()
+        : "";
+    sel.innerHTML = "";
+    var o0 = document.createElement("option");
+    o0.value = "";
+    o0.textContent = "— Select group —";
+    sel.appendChild(o0);
+    (groups || []).forEach(function (g) {
+      var o = document.createElement("option");
+      o.value = g.id;
+      o.textContent = g.name;
+      sel.appendChild(o);
+    });
+    if (keepId && Array.from(sel.options).some(function (o) { return o.value === keepId; })) {
+      sel.value = keepId;
+    } else if (keepName) {
+      for (var i = 0; i < sel.options.length; i++) {
+        if (sel.options[i].textContent.trim() === keepName) {
+          sel.selectedIndex = i;
+          break;
+        }
+      }
+    } else {
+      sel.value = "";
+    }
+  }
+
+  function ensureDmStepGroupSelectByName(sel, name) {
+    if (!sel) return;
+    if (!name) {
+      sel.value = "";
+      return;
+    }
+    var t = String(name).trim();
+    for (var i = 0; i < sel.options.length; i++) {
+      if (sel.options[i].textContent.trim() === t) {
+        sel.selectedIndex = i;
+        return;
+      }
+    }
+    sel.value = "";
+  }
+
+  function setDmStepNameSelectOptions(names, placeholderText) {
+    var sel = document.getElementById("dm-step-name");
+    if (!sel) return;
+    var keep = String(sel.value || "").trim();
+    sel.innerHTML = "";
+    var o0 = document.createElement("option");
+    o0.value = "";
+    o0.textContent = placeholderText || "— Select —";
+    sel.appendChild(o0);
+    (names || []).forEach(function (n) {
+      var o = document.createElement("option");
+      o.value = n;
+      o.textContent = n;
+      sel.appendChild(o);
+    });
+    if (keep) {
+      ensureSelectHasValue(sel, keep);
+    } else {
+      sel.value = "";
+    }
+  }
+
+  var dmStepListLoadSeq = 0;
+  async function refreshDmStepNameOptionsOnly() {
+    var gEl = document.getElementById("dm-step-group");
+    if (!gEl) return;
+    var gid = String(gEl.value || "").trim();
+    if (!gid) {
+      setDmStepNameSelectOptions([], "— Select a group first —");
+      return;
+    }
+    var mySeq = ++dmStepListLoadSeq;
+    var sel = document.getElementById("app-select");
+    var pat = sessionStorage.getItem(SESSION.PAT);
+    var base = sessionStorage.getItem(SESSION.BASE);
+    if (!sel || !sel.value || !pat || !base) {
+      setDmStepNameSelectOptions([], "— Select a group first —");
+      return;
+    }
+    try {
+      var res = await apiFetchJson("/api/sql", {
+        pat: pat,
+        baseWebServerUrl: base,
+        applicationName: sel.value,
+        sqlQuery: dmSqlStepsForGroupId(gid),
+        dbLocation: "Application",
+        resultDataTableName: "",
+        xfExternalDbConnectionName: "",
+        customSubstVarsAsCommaSeparatedPairs: "",
+        sqlApiVersion: "5.2.0",
+      });
+      if (mySeq !== dmStepListLoadSeq) return;
+      if (!res.res.ok) {
+        setDmStepNameSelectOptions([], "— Could not load steps —");
+        return;
+      }
+      var ex = extractTableRows(res.data);
+      if (!ex || !ex.rows || !ex.rows.length) {
+        setDmStepNameSelectOptions([], "— Select step —");
+        return;
+      }
+      var seen = {};
+      ex.rows.forEach(function (row) {
+        var n = rowField(row, ["Name", "name"]);
+        if (n != null && String(n).trim() !== "") {
+          seen[String(n).trim()] = true;
+        }
+      });
+      var names = Object.keys(seen).sort(function (a, b) {
+        return a.localeCompare(b, undefined, { sensitivity: "base" });
+      });
+      setDmStepNameSelectOptions(names, "— Select step —");
+    } catch (_) {
+      if (mySeq === dmStepListLoadSeq) {
+        setDmStepNameSelectOptions([], "— Could not load steps —");
+      }
+    }
+  }
+
+  async function runApplicationSqlDmGroupList() {
+    var sel = document.getElementById("app-select");
+    var pat = sessionStorage.getItem(SESSION.PAT);
+    var base = sessionStorage.getItem(SESSION.BASE);
+    if (!sel || !sel.value || !pat || !base) {
+      return { ok: false, groups: [] };
+    }
+    try {
+      var r = await apiFetchJson("/api/sql", {
+        pat: pat,
+        baseWebServerUrl: base,
+        applicationName: sel.value,
+        sqlQuery: DM_SQL_DM_GROUPS,
+        dbLocation: "Application",
+        resultDataTableName: "",
+        xfExternalDbConnectionName: "",
+        customSubstVarsAsCommaSeparatedPairs: "",
+        sqlApiVersion: "5.2.0",
+      });
+      if (!r.res.ok) {
+        return { ok: false, groups: [] };
+      }
+      var ex = extractTableRows(r.data);
+      if (!ex || !ex.rows || !ex.rows.length) {
+        return { ok: true, groups: [] };
+      }
+      var byId = {};
+      ex.rows.forEach(function (row) {
+        var id = rowField(row, ["UniqueID", "uniqueID", "uniqueId"]);
+        var name = rowField(row, ["Name", "name"]);
+        if (id != null && name != null && String(name).trim() !== "") {
+          byId[String(id).trim()] = String(name).trim();
+        }
+      });
+      var groups = Object.keys(byId).map(function (id) {
+        return { id: id, name: byId[id] };
+      });
+      groups.sort(function (a, b) {
+        return a.name.localeCompare(b.name, undefined, { sensitivity: "base" });
+      });
+      return { ok: true, groups: groups };
+    } catch (_) {
+      return { ok: false, groups: [] };
+    }
+  }
+
+  async function refreshDmStepListsFromServer() {
+    var sel = document.getElementById("app-select");
+    if (!sel || !sel.value || !hasStoredSession()) {
+      setDmStepGroupSelectOptions([]);
+      setDmStepNameSelectOptions([], "— Select an application in the ribbon —");
+      return;
+    }
+    var gr = await runApplicationSqlDmGroupList();
+    setDmStepGroupSelectOptions(gr.ok ? gr.groups : []);
+    await refreshDmStepNameOptionsOnly();
+  }
+
+  function getSelectedDmGroupName() {
+    var g = document.getElementById("dm-step-group");
+    if (!g || !g.value) return "";
+    var opt = g.selectedOptions[0];
+    return opt ? String(opt.textContent || "").trim() : "";
+  }
+
+  function setDpAdapterNameOptions(names) {
+    var sel = document.getElementById("dp-adapter-name");
+    if (!sel) return;
+    var keep = String(sel.value || "").trim();
+    sel.innerHTML = "";
+    var o0 = document.createElement("option");
+    o0.value = "";
+    o0.textContent = "— Select adapter —";
+    sel.appendChild(o0);
+    (names || []).forEach(function (n) {
+      var o = document.createElement("option");
+      o.value = n;
+      o.textContent = n;
+      sel.appendChild(o);
+    });
+    if (keep) {
+      ensureSelectHasValue(sel, keep);
+    } else {
+      sel.value = "";
+    }
+  }
+
+  async function refreshAdapterNamesFromServer() {
+    var sel = document.getElementById("app-select");
+    if (!sel || !sel.value || !hasStoredSession()) {
+      setDpAdapterNameOptions([]);
+      return;
+    }
+    var r = await runApplicationSqlMetadata(DP_SQL_ADAPTERS);
+    setDpAdapterNameOptions(r.ok ? r.values : []);
+  }
+
+  function setDpCubeViewNameOptions(names) {
+    var sel = document.getElementById("dp-cube-view-name");
+    if (!sel) return;
+    var keep = String(sel.value || "").trim();
+    sel.innerHTML = "";
+    var o0 = document.createElement("option");
+    o0.value = "";
+    o0.textContent = "— Select cube view —";
+    sel.appendChild(o0);
+    (names || []).forEach(function (n) {
+      var o = document.createElement("option");
+      o.value = n;
+      o.textContent = n;
+      sel.appendChild(o);
+    });
+    if (keep) {
+      ensureSelectHasValue(sel, keep);
+    } else {
+      sel.value = "";
+    }
+  }
+
+  async function refreshCubeViewNamesFromServer() {
+    var sel = document.getElementById("app-select");
+    if (!sel || !sel.value || !hasStoredSession()) {
+      setDpCubeViewNameOptions([]);
+      return;
+    }
+    var r = await runApplicationSqlMetadata(DP_SQL_CUBE_VIEWS);
+    setDpCubeViewNameOptions(r.ok ? r.values : []);
   }
 
   function renderTableInto(container, rows) {
@@ -918,6 +1463,22 @@
       }
       updateAppBanner();
       refreshAllTaskHistories();
+      var dmPanel = document.getElementById("panel-dm-sequence");
+      if (dmPanel && !dmPanel.hidden) {
+        refreshDmSeqListsFromServer();
+      }
+      var dmStepPanel = document.getElementById("panel-dm-step");
+      if (dmStepPanel && !dmStepPanel.hidden) {
+        refreshDmStepListsFromServer();
+      }
+      var dpAdapterPanel = document.getElementById("panel-dp-adapter");
+      if (dpAdapterPanel && !dpAdapterPanel.hidden) {
+        refreshAdapterNamesFromServer();
+      }
+      var dpCubePanel = document.getElementById("panel-dp-cube-view");
+      if (dpCubePanel && !dpCubePanel.hidden) {
+        refreshCubeViewNamesFromServer();
+      }
     });
   }
 
@@ -1134,8 +1695,16 @@
           var ws = document.getElementById("dm-workspace");
           var sq = document.getElementById("dm-sequence-name");
           var sv = document.getElementById("dm-subst-vars");
-          if (ws) ws.value = o.w || "";
-          if (sq) sq.value = o.s || "";
+          if (ws && o.w) {
+            ensureDmWorkspaceSelectByName(ws, o.w);
+            refreshDmSequenceOptionsOnly().then(function () {
+              if (sq && o.s) ensureSelectHasValue(sq, o.s);
+            });
+          } else {
+            if (ws) ws.value = "";
+            if (sq) sq.value = "";
+            if (ws && !o.w) refreshDmSequenceOptionsOnly();
+          }
           if (sv) sv.value = histSubstValue(o, false);
           ws?.focus();
         } catch (_) {
@@ -1154,8 +1723,16 @@
           var g = document.getElementById("dm-step-group");
           var s = document.getElementById("dm-step-name");
           var v = document.getElementById("dm-step-subst-vars");
-          if (g) g.value = o.g || "";
-          if (s) s.value = o.s || "";
+          if (g && o.g) {
+            ensureDmStepGroupSelectByName(g, o.g);
+            refreshDmStepNameOptionsOnly().then(function () {
+              if (s && o.s) ensureSelectHasValue(s, o.s);
+            });
+          } else {
+            if (g) g.value = "";
+            if (s) s.value = "";
+            if (g && !o.g) refreshDmStepNameOptionsOnly();
+          }
           if (v) v.value = histSubstValue(o, false);
           g?.focus();
         } catch (_) {
@@ -1174,7 +1751,8 @@
           var a = document.getElementById("dp-adapter-name");
           var r = document.getElementById("dp-adapter-result-table");
           var v = document.getElementById("dp-adapter-subst-vars");
-          if (a) a.value = o.a || "";
+          if (a && o.a) ensureSelectHasValue(a, o.a);
+          else if (a) a.value = "";
           if (r) r.value = o.r || "";
           if (v) v.value = histSubstValue(o, false);
           a?.focus();
@@ -1196,7 +1774,8 @@
           var r = document.getElementById("dp-cube-result-table");
           var v = document.getElementById("dp-cube-subst-vars");
           var opts = document.getElementById("dp-cube-table-options");
-          if (n) n.value = o.v || "";
+          if (n && o.v) ensureSelectHasValue(n, o.v);
+          else if (n) n.value = "";
           if (pr) pr.checked = !!o.p;
           if (r) r.value = o.r || "";
           if (v) v.value = histSubstValue(o, true);
@@ -1333,6 +1912,10 @@
     }
   });
 
+  document.getElementById("dm-workspace")?.addEventListener("change", function () {
+    refreshDmSequenceOptionsOnly();
+  });
+
   document.getElementById("btn-run-dm-sequence")?.addEventListener("click", async function () {
     var sel = document.getElementById("app-select");
     var shell = document.getElementById("dm-result");
@@ -1351,19 +1934,12 @@
       return;
     }
 
-    var workspaceName = ws ? String(ws.value || "").trim() : "";
+    var workspaceName = getSelectedDmWorkspaceName();
     var sequenceName = seq ? String(seq.value || "").trim() : "";
-    if (!workspaceName) {
-      shell.hidden = false;
-      meta.textContent = "Validation";
-      pre.textContent = "Workspace name is required.";
-      ws?.focus();
-      return;
-    }
     if (!sequenceName) {
       shell.hidden = false;
       meta.textContent = "Validation";
-      pre.textContent = "Sequence name is required.";
+      pre.textContent = "Select a sequence from the list.";
       seq?.focus();
       return;
     }
@@ -1396,7 +1972,7 @@
       if (r.res.ok) {
         var seqSubst = subst ? String(subst.value || "").trim() : "";
         pushTaskHistory(TASK_KIND_SEQ, sel.value, {
-          w: workspaceName,
+          w: workspaceName || "",
           s: sequenceName,
           customSubstVars: seqSubst,
         });
@@ -1407,12 +1983,15 @@
     }
   });
 
+  document.getElementById("dm-step-group")?.addEventListener("change", function () {
+    refreshDmStepNameOptionsOnly();
+  });
+
   document.getElementById("btn-run-dm-step")?.addEventListener("click", async function () {
     var sel = document.getElementById("app-select");
     var shell = document.getElementById("dm-step-result");
     var meta = document.getElementById("dm-step-result-meta");
     var pre = document.getElementById("dm-step-result-json");
-    var groupEl = document.getElementById("dm-step-group");
     var stepEl = document.getElementById("dm-step-name");
     var subst = document.getElementById("dm-step-subst-vars");
     if (!sel || !shell || !meta || !pre) return;
@@ -1425,13 +2004,13 @@
       return;
     }
 
-    var groupName = groupEl ? String(groupEl.value || "").trim() : "";
+    var groupName = getSelectedDmGroupName();
     var stepName = stepEl ? String(stepEl.value || "").trim() : "";
     if (!groupName) {
       shell.hidden = false;
       meta.textContent = "Validation";
-      pre.textContent = "Data management group name is required.";
-      groupEl?.focus();
+      pre.textContent = "Select a data management group from the list.";
+      document.getElementById("dm-step-group")?.focus();
       return;
     }
     if (!stepName) {
@@ -1510,7 +2089,7 @@
     if (!adapterName) {
       shell.hidden = false;
       meta.textContent = "Validation";
-      pre.textContent = "Adapter name is required.";
+      pre.textContent = "Select an adapter from the list.";
       pre.style.display = "block";
       wrap.hidden = true;
       adapterEl?.focus();
@@ -1587,7 +2166,7 @@
     if (!cubeViewName) {
       shell.hidden = false;
       meta.textContent = "Validation";
-      pre.textContent = "Cube view name is required.";
+      pre.textContent = "Select a cube view from the list.";
       pre.style.display = "block";
       wrap.hidden = true;
       nameEl?.focus();
@@ -1756,6 +2335,8 @@
       pre.style.display = "block";
     }
   });
+
+  sortMethodTypeSelectByName();
 
   if (hasStoredSession()) {
     try {

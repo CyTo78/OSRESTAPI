@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>OneStream REST API services · v1.0</title>
+    <title>OneStream REST API services · v1.1</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -46,9 +46,11 @@
         --color-sidebar: #e4e9ef;
         --color-nav-active-bg: #ffffff;
         --color-nav-active-border: var(--color-accent);
-        --color-warn-bg: #fff8e6;
-        --color-warn-border: #e8b931;
-        --color-warn-text: #5c4a00;
+        --color-warn-bg: #fdeaea;
+        --color-warn-border: #e8a0a0;
+        --color-warn-text: #7a2222;
+        --color-app-select-bg: #e8f0fc;
+        --color-app-select-border: #a8c4e8;
         --shadow-bar: 0 1px 0 rgba(0, 0, 0, 0.06);
       }
 
@@ -65,9 +67,11 @@
         --color-sidebar: #161b22;
         --color-nav-active-bg: #252b33;
         --color-nav-active-border: var(--color-accent);
-        --color-warn-bg: #3d3420;
-        --color-warn-border: #a67c00;
-        --color-warn-text: #fcefb4;
+        --color-warn-bg: #3d2224;
+        --color-warn-border: #8b4548;
+        --color-warn-text: #ffc9c9;
+        --color-app-select-bg: #1a2438;
+        --color-app-select-border: #3d5580;
         --shadow-bar: 0 1px 0 rgba(0, 0, 0, 0.35);
       }
 
@@ -129,15 +133,42 @@
 
       .top-bar {
         flex-shrink: 0;
-        display: flex;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
         align-items: center;
-        justify-content: space-between;
-        gap: 1rem;
+        gap: 0.75rem 1rem;
         min-height: calc(var(--ribbon-h) + 1.1rem);
         padding: 0.55rem 1rem;
         background: var(--color-surface);
         border-bottom: 1px solid var(--color-border);
         box-shadow: var(--shadow-bar);
+      }
+      .top-bar__center {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-width: 0;
+      }
+      .ribbon-field--app {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.2rem;
+      }
+      .ribbon-field--app .ribbon-label {
+        font-size: 0.72rem;
+        letter-spacing: 0.02em;
+      }
+      .ribbon-field--app select#app-select {
+        min-width: min(22rem, 92vw);
+        max-width: 28rem;
+        width: max(12rem, min(22rem, 85vw));
+        background: var(--color-app-select-bg);
+        border: 1px solid var(--color-app-select-border);
+        border-radius: var(--radius);
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
+      }
+      [data-theme="dark"] .ribbon-field--app select#app-select {
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25);
       }
       .top-bar__brand {
         display: flex;
@@ -169,8 +200,10 @@
       .top-bar__actions {
         display: flex;
         align-items: center;
+        justify-content: flex-end;
         flex-wrap: wrap;
         gap: 0.6rem;
+        min-width: 0;
       }
       .ribbon-field {
         display: flex;
@@ -367,6 +400,16 @@
         box-sizing: border-box;
         line-height: 1.25;
       }
+      /* DB location: room for label + chevron */
+      .sql-options-row label.sql-db-location-field {
+        min-width: 11.5rem;
+      }
+      .sql-options-row label.sql-db-location-field select#sql-db-location {
+        min-width: 10.75rem;
+        max-width: none;
+        width: 100%;
+        padding-right: 2rem;
+      }
       .sql-options-row label.wide {
         flex: 1 1 12rem;
         min-width: 8rem;
@@ -374,6 +417,28 @@
       .sql-options-row label.wide input {
         max-width: none;
         width: 100%;
+      }
+      .sql-options-row label.wide select {
+        max-width: none;
+        width: 100%;
+      }
+      .dm-seq-hint {
+        margin: 0 0 0.4rem;
+        font-size: 0.78rem;
+        color: var(--color-text-muted);
+        line-height: 1.35;
+      }
+      .field-microhint {
+        display: block;
+        margin-top: 0.2rem;
+        font-size: 0.68rem;
+        font-weight: 400;
+        color: var(--color-text-muted);
+        line-height: 1.3;
+      }
+      .field-microhint code {
+        font-size: 0.65rem;
+        word-break: break-word;
       }
 
       /* Cube view command — aligned form (avoids Pico checkbox / flex row clashes) */
@@ -700,7 +765,29 @@
           border-bottom-color: var(--color-nav-active-border);
         }
         .top-bar {
-          flex-wrap: wrap;
+          grid-template-columns: 1fr;
+          justify-items: stretch;
+        }
+        .top-bar__brand {
+          justify-self: start;
+        }
+        .top-bar__center {
+          justify-self: stretch;
+          order: 2;
+        }
+        .ribbon-field--app {
+          width: 100%;
+          align-items: stretch;
+        }
+        .ribbon-field--app select#app-select {
+          width: 100%;
+          max-width: none;
+        }
+        .top-bar__actions {
+          justify-self: end;
+          order: 3;
+          width: 100%;
+          justify-content: flex-end;
         }
         .ribbon-field select {
           max-width: 100%;
@@ -723,7 +810,7 @@
           <div>
             <h1 style="margin-top: 0">OneStream REST API services</h1>
             <p style="color: var(--color-text-muted); font-size: 0.82rem; margin: 0.25rem 0 0">
-              v1.0 · Cyril Toussaint
+              v1.1 · Cyril Toussaint
             </p>
             <p style="color: var(--color-text-muted); font-size: 0.9rem; margin: 0.5rem 0 0">
               Sign in with your PAT, then pick an application and run tasks. Use
@@ -796,15 +883,17 @@
             <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
             OneStream REST API services
           </span>
-          <span class="top-bar__brand-meta">v1.0 · Cyril Toussaint</span>
+          <span class="top-bar__brand-meta">v1.1 · Cyril Toussaint</span>
         </div>
-        <div class="top-bar__actions">
-          <label class="ribbon-field">
+        <div class="top-bar__center">
+          <label class="ribbon-field ribbon-field--app">
             <span class="ribbon-label">Application</span>
-            <select id="app-select" required>
-              <option value="">— Select —</option>
+            <select id="app-select" required title="Choose the OneStream application for API calls">
+              <option value="">— Select application —</option>
             </select>
           </label>
+        </div>
+        <div class="top-bar__actions">
           <div class="ribbon-field ribbon-field--icon-only">
             <button
               type="button"
@@ -873,7 +962,7 @@
             </div>
 
             <div class="sql-options-row">
-              <label>
+              <label class="sql-db-location-field">
                 DB location
                 <select id="sql-db-location">
                   <option value="Application" selected>Application</option>
@@ -947,20 +1036,24 @@
             </div>
 
             <div class="sql-options-row">
-              <label>
+              <label class="wide">
                 Workspace name
-                <input type="text" id="dm-workspace" placeholder="e.g. Agent1" autocomplete="off" />
+                <select id="dm-workspace">
+                  <option value="">— None / not from list —</option>
+                </select>
               </label>
               <label class="wide">
                 Sequence name
-                <input type="text" id="dm-sequence-name" placeholder="e.g. Agent1_Consolidate" autocomplete="off" />
+                <select id="dm-sequence-name">
+                  <option value="">— Loading… —</option>
+                </select>
               </label>
               <label class="wide">
                 CustomSubstVars (optional)
                 <input
                   type="text"
                   id="dm-subst-vars"
-                  placeholder="P_Scenario=[Actual],P_Time=[2026M1],…"
+                  placeholder="e.g. P_Scenario=[Actual], P_Time=[2026M1]"
                   autocomplete="off"
                 />
               </label>
@@ -998,23 +1091,22 @@
             <div class="sql-options-row">
               <label class="wide">
                 Data management group name
-                <input
-                  type="text"
-                  id="dm-step-group"
-                  placeholder="Existing group name"
-                  autocomplete="off"
-                />
+                <select id="dm-step-group">
+                  <option value="">— Select group —</option>
+                </select>
               </label>
               <label class="wide">
                 Step name
-                <input type="text" id="dm-step-name" placeholder="Existing step name" autocomplete="off" />
+                <select id="dm-step-name">
+                  <option value="">— Select a group first —</option>
+                </select>
               </label>
               <label class="wide">
                 CustomSubstVars (optional)
                 <input
                   type="text"
                   id="dm-step-subst-vars"
-                  placeholder="VariableName1=[Value1],VariableName2=[Value2],…"
+                  placeholder="e.g. P_Scenario=[Actual], P_Time=[2026M1]"
                   autocomplete="off"
                 />
               </label>
@@ -1050,10 +1142,19 @@
               </p>
             </div>
 
+            <p class="dm-seq-hint">
+              Adapter names load from the application database. Pick an application in the ribbon first.
+            </p>
             <div class="sql-options-row">
               <label class="wide">
                 Adapter name
-                <input type="text" id="dp-adapter-name" placeholder="Existing adapter name" autocomplete="off" />
+                <select id="dp-adapter-name" aria-describedby="dp-adapter-name-tip">
+                  <option value="">— Select adapter —</option>
+                </select>
+                <span id="dp-adapter-name-tip" class="field-microhint"
+                  >Loaded from:
+                  <code>SELECT DISTINCT Name FROM DashboardAdapter WITH (NOLOCK) ORDER BY Name</code></span
+                >
               </label>
               <label class="wide">
                 Result table name
@@ -1114,8 +1215,15 @@
 
             <div class="cube-form" role="group" aria-label="Cube view parameters">
               <label class="cube-form__field cube-form__field--full" for="dp-cube-view-name">
-                Cube view name
-                <input type="text" id="dp-cube-view-name" placeholder="Existing cube view name" autocomplete="off" />
+                <span class="cube-form__label-line">Cube view name</span>
+                <span class="cube-form__hint-row">
+                  <span class="cube-form__hint"
+                    >List from <code>select distinct name from cubeviewitem with (nolock) order by name</code> (application DB).</span
+                  >
+                </span>
+                <select id="dp-cube-view-name">
+                  <option value="">— Select cube view —</option>
+                </select>
               </label>
 
               <div class="cube-form__field cube-form__field--full cube-form__toggle">

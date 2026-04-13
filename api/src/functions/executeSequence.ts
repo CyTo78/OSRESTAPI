@@ -59,12 +59,21 @@ async function executeSequence(
       jsonBody: { error: "applicationName is required" },
     });
   }
-  if (!body.workspaceName || typeof body.workspaceName !== "string" || !body.workspaceName.trim()) {
+  if (
+    body.workspaceName !== undefined &&
+    body.workspaceName !== null &&
+    typeof body.workspaceName !== "string"
+  ) {
     return withCors(request, {
       status: 400,
-      jsonBody: { error: "workspaceName is required" },
+      jsonBody: {
+        error:
+          "workspaceName must be a string when provided (empty string allowed for global / no-workspace sequences)",
+      },
     });
   }
+  const workspaceName =
+    typeof body.workspaceName === "string" ? body.workspaceName.trim() : "";
   if (!body.sequenceName || typeof body.sequenceName !== "string" || !body.sequenceName.trim()) {
     return withCors(request, {
       status: 400,
@@ -88,7 +97,7 @@ async function executeSequence(
       pat: body.pat,
       baseWebServerUrl: body.baseWebServerUrl,
       apiVersion,
-      workspaceName: body.workspaceName.trim(),
+      workspaceName,
       applicationName: body.applicationName.trim(),
       sequenceName: body.sequenceName.trim(),
       customSubstVarsAsCommaSeparatedPairs: customSubst,
