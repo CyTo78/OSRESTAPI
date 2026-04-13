@@ -639,12 +639,6 @@
         max-width: none;
         width: 100%;
       }
-      .dm-seq-hint {
-        margin: 0 0 0.4rem;
-        font-size: 0.78rem;
-        color: var(--color-text-muted);
-        line-height: 1.35;
-      }
       .field-microhint {
         display: block;
         margin-top: 0.2rem;
@@ -1395,21 +1389,12 @@
               <p><code>GetAdoDataSetForAdapter</code> · API <code>7.2.0</code></p>
             </div>
 
-            <p class="dm-seq-hint">
-              API 7.2.0: the proxy opens your selected application (OpenApplication) using your Logon SessionInfo, then
-              calls the adapter with the required <code>SI</code> and PAT (or optional Logon <code>access_token</code>)
-              as Bearer. Adapter names load from the application database; pick an application in the ribbon first.
-            </p>
             <div class="sql-options-row">
               <label class="wide">
                 Adapter name
-                <select id="dp-adapter-name" aria-describedby="dp-adapter-name-tip">
+                <select id="dp-adapter-name">
                   <option value="">— Select adapter —</option>
                 </select>
-                <span id="dp-adapter-name-tip" class="field-microhint"
-                  >Loaded from:
-                  <code>SELECT DISTINCT Name FROM DashboardAdapter WITH (NOLOCK) ORDER BY Name</code></span
-                >
               </label>
               <label class="wide">
                 Result table name
@@ -1474,10 +1459,8 @@
             <div class="cube-form" role="group" aria-label="Cube view parameters">
               <label class="cube-form__field cube-form__field--full" for="dp-cube-view-name">
                 <span class="cube-form__label-line">Cube view name</span>
-                <span class="cube-form__hint-row">
-                  <span class="cube-form__hint"
-                    >List from <code>select distinct name from cubeviewitem with (nolock) order by name</code> (application DB).</span
-                  >
+                <span class="cube-form__hint-row" aria-hidden="true">
+                  <span class="cube-form__hint cube-form__hint--placeholder">&#160;</span>
                 </span>
                 <select id="dp-cube-view-name">
                   <option value="">— Select cube view —</option>
@@ -1568,8 +1551,8 @@
             <div class="cube-form" role="group" aria-label="Method command parameters">
               <label class="cube-form__field cube-form__field--full" for="dp-method-xf-type">
                 <span class="cube-form__label-line">Method type</span>
-                <span class="cube-form__hint-row">
-                  <span class="cube-form__hint">Pre-defined XF method command type (list may change in a future release).</span>
+                <span class="cube-form__hint-row" aria-hidden="true">
+                  <span class="cube-form__hint cube-form__hint--placeholder">&#160;</span>
                 </span>
                 <select id="dp-method-xf-type" required>
                   <option value="">— Select command type —</option>
