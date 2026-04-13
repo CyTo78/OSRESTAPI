@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>OneStream REST API services · v1.1</title>
+    <title>OneStream REST API services · v1.2</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -1049,7 +1049,7 @@
               <i class="fa-solid fa-layer-group login-title__icon" aria-hidden="true"></i>
               OneStream REST API services
             </h1>
-            <p class="login-version">v1.1 · Cyril Toussaint</p>
+            <p class="login-version">v1.2 · Cyril Toussaint</p>
             <p class="login-tagline">
               Use your OneStream personal access token (PAT). You will choose an application after sign-in.
             </p>
@@ -1135,7 +1135,7 @@
             <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
             OneStream REST API services
           </span>
-          <span class="top-bar__brand-meta">v1.1 · Cyril Toussaint</span>
+          <span class="top-bar__brand-meta">v1.2 · Cyril Toussaint</span>
         </div>
         <div class="top-bar__center">
           <label class="ribbon-field ribbon-field--app">
@@ -1669,6 +1669,42 @@
               <h2>Changelog</h2>
             </div>
             <div class="changelog-body">
+              <article class="changelog-release" aria-labelledby="changelog-v1-2">
+                <h3 id="changelog-v1-2">v1.2.0</h3>
+                <ul>
+                  <li>
+                    <strong>Changelog</strong> link in the sidebar (bottom) opens an in-app release history panel.
+                  </li>
+                  <li>
+                    <strong>Ribbon:</strong> three columns share the same height; product title and version/author line
+                    are slightly larger; <strong>Application</strong> label sits to the left of the dropdown with the
+                    chevron drawn inside the control.
+                  </li>
+                  <li>
+                    <strong>Sidebar:</strong> active task styling uses a single bordered “pill” with an inset accent bar
+                    and padding so rounded corners are not clipped.
+                  </li>
+                  <li>
+                    <strong>Task headers</strong> show only the task name, API operation name, and API version (extra
+                    prose removed).
+                  </li>
+                  <li>
+                    <strong>Data adapter</strong> targets API <strong>7.2.0</strong>: proxy calls
+                    <code>Application/OpenApplication</code> using your Logon SessionInfo, then
+                    <code>GetAdoDataSetForAdapter</code> with required <code>SI</code>, boolean <code>IsSystemLevel</code>,
+                    and <code>ResultDataTableName</code> (defaults to <code>Results</code> when left blank). Bearer is
+                    your PAT, or an optional Logon <code>access_token</code> when the platform returns one.
+                  </li>
+                  <li>
+                    <strong>Result meta</strong> for main runs (SQL, sequences, steps, adapter, cube view, method) shows
+                    HTTP status and <strong>round-trip time in milliseconds</strong>.
+                  </li>
+                  <li>
+                    <strong>Sign-in screen</strong> reorganized: centered card, <em>Connection</em> / <em>Credentials</em>
+                    sections, shorter copy, and a compact local-dev hint.
+                  </li>
+                </ul>
+              </article>
               <article class="changelog-release" aria-labelledby="changelog-v1-1">
                 <h3 id="changelog-v1-1">v1.1.0</h3>
                 <ul>

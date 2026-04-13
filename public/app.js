@@ -20,7 +20,7 @@
     APP_CHOICE: "onestream_session_app_choice",
   };
 
-  /** v1.1: localStorage keys are per browser origin (works the same on Azure Static Web Apps). */
+  /** v1.2: localStorage keys are per browser origin (works the same on Azure Static Web Apps). */
   const TASK_HIST_PREFIX = "onestream_v1_hist:";
   const TASK_HIST_MAX = 10;
   const TASK_KIND_SQL = "sql";

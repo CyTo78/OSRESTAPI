@@ -1,7 +1,7 @@
 {
   "name": "onestream-rest-proxy",
   "private": true,
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "OneStream REST API services — static UI + Azure Functions proxy (PAT)",
   "scripts": {
     "build": "npm run build --prefix api",

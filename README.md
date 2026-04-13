@@ -1,6 +1,6 @@
 # OneStream REST API services
 
-**Version:** 1.1.0  
+**Version:** 1.2.0  
 **Author:** Cyril Toussaint
 
 Static web UI plus Azure Functions that proxy [OneStream](https://onestream.com) REST calls using a Personal Access Token (PAT). The PAT stays in the browser session; the API runs server-side with your configured secrets.
@@ -46,7 +46,7 @@ Initialize and push from your machine (replace `YOUR_USER` and repo name):
 cd path/to/onestream-rest-proxy
 git init
 git add .
-git commit -m "Release v1.1.0 — OneStream REST API services"
+git commit -m "Release v1.2.0 — OneStream REST API services"
 git branch -M main
 git remote add origin https://github.com/YOUR_USER/onestream-rest-proxy.git
 git push -u origin main
