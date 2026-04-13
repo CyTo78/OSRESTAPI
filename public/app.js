@@ -97,10 +97,10 @@
   var lastAdapterPayload = null;
   var lastCubeViewPayload = null;
   var lastMethodPayload = null;
-  var resultViewMode = "json";
-  var adapterResultViewMode = "json";
-  var cubeViewResultViewMode = "json";
-  var methodResultViewMode = "json";
+  var resultViewMode = "table";
+  var adapterResultViewMode = "table";
+  var cubeViewResultViewMode = "table";
+  var methodResultViewMode = "table";
 
   function syncThemeToggles() {
     var cur = document.documentElement.getAttribute("data-theme") || "light";
