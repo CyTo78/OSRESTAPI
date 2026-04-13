@@ -54,31 +54,71 @@
     BusinessRule:
       "{MyBusinessRuleName}{MyDataSetName}{Name1=Value1, Name2=[Value2]}",
     CertificationForWorkflowUnit:
-      "{Workflow Profile Name}{Scenario Name}{Time Name}{Include Descendants}{Filter}",
+      "{Workflow Profile Name}{Scenario Name}{Time Name}{Include Descendants}{Empty String or Filter Expression}",
     ConfirmationForWorkflowUnit:
-      "{Workflow Profile Name}{Scenario Name}{Time Name}{Include Descendants}{Filter}",
+      "{Workflow Profile Name}{Scenario Name}{Time Name}{Include Descendants}{Empty String or Filter Expression}",
     DataCellDetail:
       "{Cube Name}{Entity Filter}{Scenario Name}{Time filter}{Account Filter}{Flow Filter}{IC Filter}{UD1 Filter}{UD2 Filter}{UD3 Filter}{UD4 Filter}{UD5 Filter}{UD6 Filter}{UD7 Filter}{UD8 Filter}{Filter}",
     DataUnit:
-      "{Cube Name}{Entity Name}{Parent Name}{Cons Name}{Scenario Name}{Time Name}{View Name}{Suppress NoData}{Filter}",
+      "{Cube Name}{Entity Name}{Parent Name}{Cons Name}{Scenario Name}{Time Name}{View Name}{Suppress NoData}{Empty String or Filter Expression}",
     DataUnitComparison:
-      "{Cube 1 Name}{Entity 1 Name}{Parent 1 Name}{Cons 1 Name}{Scenario 1 Name}{Time 1 Name}{Cube 2 Name}{Entity 2 Name}{Parent 2 Name}{Cons 2 Name}{Scenario 2 Name}{Time 2 Name}{View Name}{Suppress NoData}{Suppress Matches}{Filter}",
+      "{Cube 1 Name}{Entity 1 Name}{Parent 1 Name}{Cons 1 Name}{Scenario 1 Name}{Time 1 Name}{Cube 2 Name}{Entity 2 Name}{Parent 2 Name}{Cons 2 Name}{Scenario 2 Name}{Time 2 Name}{View Name}{Suppress NoData}{Suppress Matches}{Empty String or Filter Expression}",
     Dimensions:
-      "{Dimension Type or Empty String}{Filter}",
+      "{Dimension Type or Empty String}{Empty String or Filter Expression}",
     DimensionTypes:
-      "{Dimension Type Filter}{Filter}",
+      "{Dimension Type Filter}{Empty String or Filter Expression}",
     DirectLoadInfo:
       "{Workflow Profile Name}{Scenario Name}{Time Name}{Filter}",
     ExcelFile:
-      "{FileSourceType}{UrlOrFullFileName}{Sheet}{NamedRange}{UseFirstRowForColumnNames}{IncludeNumericColumns}{Filter}",
+      "{FileSourceType}{UrlOrFullFileName}{Sheet}{NamedRange}{UseFirstRowForColumnNames}{IncludeNumericColumns}{Empty String or Filter Expression}",
     FormsStatusForWorkflowUnit:
-      "{Workflow Profile Name}{Scenario Name}{Time Name}{Form Status}{Filter}",
+      "{Workflow Profile Name}{Scenario Name}{Time Name}{Form Status}{Empty String or Filter Expression}",
     Groups:
-      "{GroupName = 'FinanceGroup'}",
+      "{ex : GroupName = 'FinanceGroup'}",
     GroupsForUsers:
-      "{User Filter}{Result Filter}",
+      "{User Filter}{Empty String or Filter Expression}",
     ICMatchingForWorkflowUnit:
-      "{MyWorkflowProfileName}{Actual}{2015M1}{PlugAccount for Workflow Parameter Set (Exclude A#)}{Empty String or C#MyCurrencyOverride}{Empty String or V#MyViewOverride}{Empty String or A#MyPlugAccountOverride}{Empty String or true/false}{Empty String or 0.0}{Empty String or E#MyEntityOverride}{Empty String or E#MyPartnerOverride}{Empty String or MyDetailDimsOverride (F#All:O#Top:U1#All:U2#All:U3#All:U4#All:U5#All:U6#All:U7#All:U8#All)}{Empty String or Filter Expression}"
+      "{MyWorkflowProfileName}{Actual}{2025M1}{PlugAccount for Workflow Parameter Set (Exclude A#)}{Empty String or C#MyCurrencyOverride}{Empty String or V#MyViewOverride}{Empty String or A#MyPlugAccountOverride}{Empty String or true/false}{Empty String or 0.0}{Empty String or E#MyEntityOverride}{Empty String or E#MyPartnerOverride}{Empty String or MyDetailDimsOverride (F#All:O#Top:U1#All:U2#All:U3#All:U4#All:U5#All:U6#All:U7#All:U8#All)}{Empty String or Filter Expression}",
+    ICMatchingForWorkflowUnitMultiPeriod:
+      "{MyWorkflowProfileName}{Actual}{Time Name (2025M1), Time Name List (2025M1,2025M2) or Time Filter (T#WFYear.Base)}{PlugAccount for Workflow Parameter Set (Exclude A#)}{Empty String or C#MyCurrencyOverride}{Empty String or V#MyViewOverride}{Empty String or A#MyPlugAccountOverride}{Empty String or true/false}{Empty String or 0.0}{Empty String or E#MyEntityOverride}{Empty String or E#MyPartnerOverride}{Empty String or MyDetailDimsOverride (F#All:O#Top:U1#All:U2#All:U3#All:U4#All:U5#All:U6#All:U7#All:U8#All)}{Empty String or Filter Expression}",
+    ICMatchingForWorkflowUnitMultiPlug:
+      "{MyWorkflowProfileName}{Actual}{2025M1}{Empty String (Returns All WF Plug Accounts), Single Plug Account(Plug1) or List of Plug Accounts(Plug1,Plug2) within WF Parameter Set (Exclude A#)}{Empty String or C#MyCurrencyOverride}{Empty String or V#MyViewOverride}{Empty String or true/false}{Empty String or 0.0}{Empty String or E#MyEntityOverride}{Empty String or E#MyPartnerOverride}{Empty String or MyDetailDimsOverride (F#All:O#Top:U1#All:U2#All:U3#All:U4#All:U5#All:U6#All:U7#All:U8#All)}{Empty String or Filter Expression}",
+    JournalsForWorkflowUnit:
+      "{MyWorkflowProfileName}{Actual}{2025M1}{Journal Status (eg:All)}{Empty String or Filter Expression}",
+    Members:
+      "{Account}{MyAccountDim}{A#Root.TreeDescendants}{Empty String or Filter Expression}",
+    ScenarioTypes:
+      "{Name for Unknown Scenario or Empty String}{Empty String or Filter Expression}",
+    StageSummaryTargetData:
+      "{MyWorkflowProfileName}{Actual}{2025M1}{Empty String or Filter Expression}",
+    UsesCubeSlicerights:
+      "{UserName or AllUsers}{CubeName or AllCubes}{Empty String or Filter Expression}",
+    UserEntityRights:
+      "{UserName or AllUsers}{CubeName or AllCubes}{EntityName or AllEntities}{Empty String or Filter Expression}",
+    UsersInGroup:
+      "{GroupName = 'FinanceGroup'}{Empty String or Filter Expression}",
+    UseWorkflowProfileRights:
+      "{UserName or AllUsers}{ProfileName or AllProfiles}{ProfileType or AllProfiles}{Empty String or Filter Expression}",
+    WorkflowAndEntityStatus:
+      "{ProfileName}{ScenarioName}{2025M1}{ProfileType or AllProfiles}{RelativeType like : Descendants}{Empty String or Filter Expression}",
+    WorkflowCalculationEntities:
+      "- no input required -",
+    WorkflowConfirmationEntities:
+      "- no input required -",
+    WorkflowLockHistory:
+      "{ProfileName}{ScenarioName}{2025M1}{ProfileType or AllProfiles}{RelativeType like : Descendants}{Empty String or Filter Expression}",
+    WorkflowProfileAndDependentProfileEntities:
+      "- no input required -",
+    WorkflowProfileEntities:
+      "- no input required -",
+    WorkflowProfileRelatives:
+      "{WorkflowProfile}{ScenarioName}{2025M1}{ScenarioType or AllProfiles}{RelativeType like : Descendants}{Include Requesting Profile (true/false)}{Empty String or Filter Expression}",
+    WorkflowProfiles:
+      "{ProfileType or AllProfiles}{Empty String or Filter Expression}",
+    WorkflowStatus:
+      "{ProfileName}{ScenarioName}{2025M1}{ProfileType or AllProfiles}{RelativeType like : Descendants}{Empty String or Filter Expression}",
+    WorkflowStatusTwelvePeriod:
+      "{ProfileName}{ScenarioName}{2025M1}{ProfileType or AllProfiles}{RelativeType like : Descendants}{Empty String or Filter Expression}",
   };
 
   /** DataMgmtGroup.UniqueID matches DataMgmtStep.DataMgmtGroupID. */
