@@ -43,6 +43,16 @@
     "select distinct name from cubeviewitem with (nolock) order by name";
   const DM_SQL_DM_GROUPS =
     "SELECT DISTINCT UniqueID, Name FROM DataMgmtGroup WITH (NOLOCK) ORDER BY Name";
+
+  /**
+   * Example method-query strings per method type. Keys must match <option value="…"> on
+   * #dp-method-xf-type exactly. Edit here to add or change snippets; unknown types show no block.
+   */
+  const METHOD_QUERY_SNIPPETS = {
+    BiBlendInfo:
+      "{MyWorkflowProfileName}{Actual}{2026M1}{Empty String or Filter Expression}",
+  };
+
   /** DataMgmtGroup.UniqueID matches DataMgmtStep.DataMgmtGroupID. */
   function dmSqlStepsForGroupId(dataMgmtGroupUniqueId) {
     var g = String(dataMgmtGroupUniqueId || "").trim();
@@ -78,6 +88,29 @@
     opts.forEach(function (opt) {
       sel.appendChild(opt);
     });
+  }
+
+  function methodQuerySnippetForType(typeId) {
+    var k = String(typeId || "").trim();
+    if (!k) return "";
+    if (!Object.prototype.hasOwnProperty.call(METHOD_QUERY_SNIPPETS, k)) return "";
+    var s = METHOD_QUERY_SNIPPETS[k];
+    return typeof s === "string" && s.trim() ? s : "";
+  }
+
+  function updateMethodQuerySnippetUi() {
+    var xfEl = document.getElementById("dp-method-xf-type");
+    var wrap = document.getElementById("dp-method-snippet-block");
+    var pre = document.getElementById("dp-method-query-snippet");
+    if (!wrap || !pre) return;
+    var snippet = methodQuerySnippetForType(xfEl ? xfEl.value : "");
+    if (!snippet) {
+      wrap.hidden = true;
+      pre.textContent = "";
+      return;
+    }
+    wrap.hidden = false;
+    pre.textContent = snippet;
   }
 
   function rowField(row, names) {
@@ -1866,6 +1899,7 @@
           if (q) q.value = o.q || "";
           if (r) r.value = o.r || "";
           if (sv) sv.value = histSubstValue(o, false);
+          updateMethodQuerySnippetUi();
           t?.focus();
         } catch (_) {
           /* ignore */
@@ -2418,7 +2452,20 @@
     }
   });
 
+  document.getElementById("dp-method-xf-type")?.addEventListener("change", function () {
+    updateMethodQuerySnippetUi();
+  });
+  document.getElementById("btn-dp-method-insert-snippet")?.addEventListener("click", function () {
+    var xfEl = document.getElementById("dp-method-xf-type");
+    var ta = document.getElementById("dp-method-query");
+    var snippet = methodQuerySnippetForType(xfEl ? xfEl.value : "");
+    if (!ta || !snippet) return;
+    ta.value = snippet;
+    ta.focus();
+  });
+
   sortMethodTypeSelectByName();
+  updateMethodQuerySnippetUi();
 
   if (hasStoredSession()) {
     try {

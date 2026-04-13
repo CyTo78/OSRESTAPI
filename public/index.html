@@ -710,6 +710,47 @@
         font-family: var(--font-mono);
         line-height: 1.35;
       }
+      .method-snippet-block {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        margin: 0.15rem 0 0.35rem;
+      }
+      .method-snippet-block[hidden] {
+        display: none !important;
+      }
+      .method-snippet-block__head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.35rem 0.75rem;
+      }
+      .method-snippet-block__title {
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: var(--color-text-muted);
+        line-height: 1.35;
+      }
+      .method-snippet-block__head .secondary {
+        margin: 0;
+        flex-shrink: 0;
+        font-size: 0.72rem;
+        padding: 0.2rem 0.5rem;
+      }
+      .method-query-snippet-pre {
+        margin: 0;
+        padding: 0.4rem 0.55rem;
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        line-height: 1.4;
+        white-space: pre-wrap;
+        word-break: break-word;
+        border-radius: var(--radius);
+        border: 1px solid var(--color-border);
+        background: var(--color-surface-2);
+        color: var(--color-text);
+      }
       .cube-form__toggle {
         padding: 0.45rem 0.55rem;
         background: var(--color-surface-2);
@@ -1556,6 +1597,7 @@
                 </span>
                 <select id="dp-method-xf-type" required>
                   <option value="">— Select command type —</option>
+                  <option value="BiBlendInfo">BiBlendInfo</option>
                   <option value="WorkflowCalculationEntities">WorkflowCalculationEntities</option>
                   <option value="WorkflowConfirmationEntities">WorkflowConfirmationEntities</option>
                   <option value="WorkflowProfileAndDependentProfileEntities">
@@ -1583,6 +1625,19 @@
                 <span class="cube-form__hint-row">
                   <span class="cube-form__hint">Query text passed to the data provider method (free text for now).</span>
                 </span>
+                <div id="dp-method-snippet-block" class="method-snippet-block" hidden>
+                  <div class="method-snippet-block__head">
+                    <span class="method-snippet-block__title">Example method query for this type</span>
+                    <button type="button" id="btn-dp-method-insert-snippet" class="secondary">
+                      Insert snippet
+                    </button>
+                  </div>
+                  <pre
+                    id="dp-method-query-snippet"
+                    class="method-query-snippet-pre"
+                    aria-live="polite"
+                  ></pre>
+                </div>
                 <textarea
                   id="dp-method-query"
                   class="sql-editor"
