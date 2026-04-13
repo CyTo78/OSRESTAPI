@@ -278,24 +278,55 @@
         height: 100%;
       }
       .ribbon-field--app {
-        flex-direction: column;
+        flex-direction: row;
         align-items: center;
         justify-content: center;
-        gap: 0.25rem;
+        gap: 0.55rem;
         min-height: 100%;
       }
       .ribbon-field--app .ribbon-label {
-        font-size: 0.72rem;
+        font-size: 0.78rem;
+        font-weight: 600;
         letter-spacing: 0.02em;
+        flex-shrink: 0;
       }
-      .ribbon-field--app select#app-select {
-        min-width: min(22rem, 92vw);
+      .ribbon-app-select-shell {
+        position: relative;
+        display: inline-flex;
+        align-items: stretch;
+        min-width: max(12rem, min(22rem, 85vw));
         max-width: 28rem;
         width: max(12rem, min(22rem, 85vw));
+        height: var(--ribbon-h);
+      }
+      .ribbon-app-select-shell::after {
+        content: "";
+        position: absolute;
+        right: 0.65rem;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 0;
+        height: 0;
+        border-left: 4px solid transparent;
+        border-right: 4px solid transparent;
+        border-top: 6px solid var(--color-text-muted);
+        pointer-events: none;
+        z-index: 1;
+      }
+      .ribbon-field--app select#app-select {
+        flex: 1;
+        min-width: 0;
+        width: 100%;
+        height: 100%;
+        padding-left: 0.75rem;
+        padding-right: 2rem;
+        appearance: none;
+        -webkit-appearance: none;
         background: var(--color-app-select-bg);
         border: 1px solid var(--color-app-select-border);
         border-radius: var(--radius);
         box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
+        cursor: pointer;
       }
       [data-theme="dark"] .ribbon-field--app select#app-select {
         box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25);
@@ -968,10 +999,20 @@
         }
         .ribbon-field--app {
           width: 100%;
-          align-items: stretch;
+          flex-wrap: wrap;
+          justify-content: flex-start;
+          align-items: center;
+        }
+        .ribbon-field--app .ribbon-label {
+          flex: 0 0 auto;
+        }
+        .ribbon-app-select-shell {
+          flex: 1 1 12rem;
+          min-width: 0;
+          width: auto;
+          max-width: none;
         }
         .ribbon-field--app select#app-select {
-          width: 100%;
           max-width: none;
         }
         .top-bar__actions {
@@ -1086,9 +1127,11 @@
         <div class="top-bar__center">
           <label class="ribbon-field ribbon-field--app">
             <span class="ribbon-label">Application</span>
-            <select id="app-select" required title="Choose the OneStream application for API calls">
-              <option value="">— Select application —</option>
-            </select>
+            <span class="ribbon-app-select-shell">
+              <select id="app-select" required title="Choose the OneStream application for API calls">
+                <option value="">— Select application —</option>
+              </select>
+            </span>
           </label>
         </div>
         <div class="top-bar__actions">
