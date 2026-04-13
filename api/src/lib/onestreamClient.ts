@@ -277,8 +277,8 @@ export type GetAdoDataSetForAdapterParams = {
   /** PAT bearer (API 5.2.x). */
   pat: string;
   /**
-   * Bearer from Logon response `access_token` (API 7.2.0+).
-   * Required when apiVersion is 7.x; PAT is not used for the adapter POST in that case.
+   * Optional bearer from Logon when the platform returns it (e.g. `access_token`).
+   * For API 7.x, if omitted or empty, the PAT is used as Bearer (same as other REST calls).
    */
   webApiAccessToken?: string;
   baseWebServerUrl: string;
@@ -299,7 +299,7 @@ function isAdapterApiV7(apiVersion: string): boolean {
 /**
  * POST .../DataProvider/GetAdoDataSetForAdapter.
  * API 5.2.x: PAT bearer, body includes WorkspaceName (empty).
- * API 7.2.0+: access_token bearer, body includes IsSystemLevel; supports sync/async semantics on the server.
+ * API 7.2.0+: body includes IsSystemLevel. Bearer is webApiAccessToken when provided, else PAT.
  */
 export async function oneStreamGetAdoDataSetForAdapter(
   params: GetAdoDataSetForAdapterParams
@@ -316,9 +316,10 @@ export async function oneStreamGetAdoDataSetForAdapter(
   const v7 = isAdapterApiV7(params.apiVersion);
 
   if (v7) {
-    const token = (params.webApiAccessToken || "").trim();
+    const fromLogon = (params.webApiAccessToken || "").trim();
+    const token = fromLogon || normalizePat(params.pat);
     if (!token) {
-      throw new Error("webApiAccessToken is required for GetAdoDataSetForAdapter API 7.x (from Logon access_token)");
+      throw new Error("PAT (or optional webApiAccessToken) is required for GetAdoDataSetForAdapter API 7.x");
     }
     const body: Record<string, string> = {
       BaseWebServerUrl: base,

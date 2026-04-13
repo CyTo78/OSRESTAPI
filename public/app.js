@@ -231,6 +231,24 @@
     return { res: res, data: data, elapsedMs: elapsedMs };
   }
 
+  /** Some tenants return a separate web token on Logon; many PAT logons only return SessionInfo. */
+  function tryExtractWebApiAccessToken(data) {
+    if (!data || typeof data !== "object") return "";
+    var keys = [
+      "access_token",
+      "accessToken",
+      "AccessToken",
+      "Access_Token",
+      "webapi_access_token",
+      "WebApiAccessToken",
+    ];
+    for (var i = 0; i < keys.length; i++) {
+      var v = data[keys[i]];
+      if (v != null && String(v).trim() !== "") return String(v).trim();
+    }
+    return "";
+  }
+
   function clearSession() {
     Object.values(SESSION).forEach(function (k) {
       try {
@@ -1468,12 +1486,7 @@
           loginResult.textContent = "Missing Logon SessionInfo.";
           return;
         }
-        var webTok = "";
-        if (data.access_token != null && String(data.access_token).trim() !== "") {
-          webTok = String(data.access_token).trim();
-        } else if (data.accessToken != null && String(data.accessToken).trim() !== "") {
-          webTok = String(data.accessToken).trim();
-        }
+        var webTok = tryExtractWebApiAccessToken(data);
         try {
           sessionStorage.setItem(SESSION.PAT, pat);
           sessionStorage.setItem(SESSION.BASE, baseWebServerUrl);
@@ -2151,18 +2164,8 @@
     var pat = sessionStorage.getItem(SESSION.PAT);
     var base = sessionStorage.getItem(SESSION.BASE);
     var siJson = sessionStorage.getItem(SESSION.LOGON_SI);
-    var webApiAccessToken = sessionStorage.getItem(SESSION.WEBAPI_ACCESS_TOKEN);
     if (!pat || !base || !siJson) {
       showLogin();
-      return;
-    }
-    if (!webApiAccessToken || !String(webApiAccessToken).trim()) {
-      shell.hidden = false;
-      meta.textContent = "Sign in again";
-      pre.textContent =
-        "Data adapter (API 7.2.0) needs the Logon access_token. Sign out and sign in again, then retry.";
-      pre.style.display = "block";
-      wrap.hidden = true;
       return;
     }
 
@@ -2178,16 +2181,20 @@
     wrap.hidden = true;
 
     try {
-      var r = await apiFetchJson("/api/adapter-dataset", {
+      var adapterBody = {
         pat: pat,
-        webApiAccessToken: String(webApiAccessToken).trim(),
         baseWebServerUrl: base,
         applicationName: sel.value,
         adapterName: adapterName,
         resultDataTableName: resultDataTableName,
         customSubstVarsAsCommaSeparatedPairs: customSubstVarsAsCommaSeparatedPairs,
         apiVersion: "7.2.0",
-      });
+      };
+      var webTokStored = sessionStorage.getItem(SESSION.WEBAPI_ACCESS_TOKEN);
+      if (webTokStored && String(webTokStored).trim() !== "") {
+        adapterBody.webApiAccessToken = String(webTokStored).trim();
+      }
+      var r = await apiFetchJson("/api/adapter-dataset", adapterBody);
       displayAdapterResult(r.res, r.data, r.elapsedMs);
       if (r.res.ok) {
         pushTaskHistory(TASK_KIND_ADAPTER, sel.value, {

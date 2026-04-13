@@ -18,7 +18,7 @@ function adapterApiIsV7(apiVersion: string): boolean {
 
 type AdapterBody = {
   pat?: string;
-  /** From Logon JSON `access_token`; required for adapter API 7.2.0+. */
+  /** Optional Logon token when the platform returns one; else PAT is used for API 7.x. */
   webApiAccessToken?: string;
   baseWebServerUrl?: string;
   apiVersion?: string;
@@ -83,15 +83,6 @@ async function adoAdapterDataset(
   const v7 = adapterApiIsV7(apiVersion);
   const webTok =
     typeof body.webApiAccessToken === "string" ? body.webApiAccessToken.trim() : "";
-  if (v7 && !webTok) {
-    return withCors(request, {
-      status: 400,
-      jsonBody: {
-        error:
-          "webApiAccessToken is required for adapter API 7.x (Logon response field access_token). Sign in again if missing.",
-      },
-    });
-  }
 
   const resultDataTableName =
     typeof body.resultDataTableName === "string" ? body.resultDataTableName : "";
@@ -105,7 +96,7 @@ async function adoAdapterDataset(
     normalizePat(body.pat);
     const result = await oneStreamGetAdoDataSetForAdapter({
       pat: body.pat,
-      webApiAccessToken: v7 ? webTok : undefined,
+      webApiAccessToken: v7 && webTok ? webTok : undefined,
       baseWebServerUrl: body.baseWebServerUrl,
       apiVersion,
       applicationName: body.applicationName.trim(),
