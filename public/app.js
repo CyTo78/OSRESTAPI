@@ -1091,17 +1091,20 @@
     return ex && ex.rows && ex.rows.length ? ex.rows : null;
   }
 
+  /** Semicolon-separated values (common for Excel in European locales). */
+  var CSV_FIELD_SEP = ";";
+
   function rowsToCsv(rows) {
     if (!rows || !rows.length) return "";
     var keys = Object.keys(rows[0]);
-    var lines = [keys.map(csvEscape).join(",")];
+    var lines = [keys.map(csvEscape).join(CSV_FIELD_SEP)];
     rows.forEach(function (row) {
       lines.push(
         keys
           .map(function (k) {
             return csvEscape(row[k]);
           })
-          .join(",")
+          .join(CSV_FIELD_SEP)
       );
     });
     return lines.join("\r\n");
@@ -1110,7 +1113,7 @@
   function csvEscape(val) {
     if (val === null || val === undefined) return "";
     var s = typeof val === "object" ? JSON.stringify(val) : String(val);
-    if (/[",\n\r]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+    if (/[";\n\r]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
     return s;
   }
 
