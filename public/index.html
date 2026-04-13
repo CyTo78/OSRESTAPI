@@ -135,9 +135,9 @@
         flex-shrink: 0;
         display: grid;
         grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-        align-items: center;
+        align-items: stretch;
         gap: 0.75rem 1rem;
-        min-height: calc(var(--ribbon-h) + 1.1rem);
+        min-height: calc(var(--ribbon-h) + 1.25rem);
         padding: 0.55rem 1rem;
         background: var(--color-surface);
         border-bottom: 1px solid var(--color-border);
@@ -148,11 +148,14 @@
         justify-content: center;
         align-items: center;
         min-width: 0;
+        height: 100%;
       }
       .ribbon-field--app {
         flex-direction: column;
         align-items: center;
-        gap: 0.2rem;
+        justify-content: center;
+        gap: 0.25rem;
+        min-height: 100%;
       }
       .ribbon-field--app .ribbon-label {
         font-size: 0.72rem;
@@ -175,15 +178,17 @@
         flex-direction: column;
         align-items: flex-start;
         justify-content: center;
-        gap: 0.1rem;
+        gap: 0.15rem;
         margin: 0;
-        line-height: 1.2;
+        line-height: 1.25;
+        min-width: 0;
+        height: 100%;
       }
       .top-bar__brand-title {
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        font-size: 0.98rem;
+        font-size: 1.07rem;
         font-weight: 700;
         color: var(--color-text);
         white-space: nowrap;
@@ -192,7 +197,7 @@
         color: var(--color-accent);
       }
       .top-bar__brand-meta {
-        font-size: 0.7rem;
+        font-size: 0.84rem;
         font-weight: 500;
         color: var(--color-text-muted);
         white-space: nowrap;
@@ -204,6 +209,7 @@
         flex-wrap: wrap;
         gap: 0.6rem;
         min-width: 0;
+        height: 100%;
       }
       .ribbon-field {
         display: flex;
@@ -320,6 +326,45 @@
       }
       .nav-item.is-active i {
         color: var(--color-accent);
+      }
+
+      .sidebar__tasks {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+      }
+
+      .nav-item--sidebar-end {
+        flex-shrink: 0;
+        margin-top: auto;
+        border-top: 1px solid var(--color-border);
+        padding-top: 0.55rem;
+      }
+
+      .changelog-panel .changelog-body {
+        padding: 0 0.85rem 1.25rem;
+        max-width: 52rem;
+      }
+      .changelog-release {
+        margin-bottom: 1.35rem;
+      }
+      .changelog-release h3 {
+        margin: 0 0 0.5rem;
+        font-size: 1.05rem;
+        color: var(--color-text);
+      }
+      .changelog-release ul {
+        margin: 0;
+        padding-left: 1.25rem;
+        color: var(--color-text-muted);
+        font-size: 0.92rem;
+        line-height: 1.5;
+      }
+      .changelog-release li {
+        margin-bottom: 0.35rem;
       }
 
       .main-panel {
@@ -764,6 +809,22 @@
           border-left: none;
           border-bottom-color: var(--color-nav-active-border);
         }
+        .sidebar__tasks {
+          flex: 1 1 auto;
+          flex-direction: row;
+          flex-wrap: wrap;
+          overflow-y: auto;
+          max-height: none;
+        }
+        .nav-item--sidebar-end {
+          margin-top: 0;
+          margin-left: auto;
+          flex: 0 0 auto;
+          border-top: none;
+          border-left: 1px solid var(--color-border);
+          padding-top: 0.4rem;
+          padding-left: 0.75rem;
+        }
         .top-bar {
           grid-template-columns: 1fr;
           justify-items: stretch;
@@ -808,8 +869,8 @@
           "
         >
           <div>
-            <h1 style="margin-top: 0">OneStream REST API services</h1>
-            <p style="color: var(--color-text-muted); font-size: 0.82rem; margin: 0.25rem 0 0">
+            <h1 style="margin-top: 0; font-size: 1.55rem">OneStream REST API services</h1>
+            <p style="color: var(--color-text-muted); font-size: 0.93rem; margin: 0.3rem 0 0">
               v1.1 · Cyril Toussaint
             </p>
             <p style="color: var(--color-text-muted); font-size: 0.9rem; margin: 0.5rem 0 0">
@@ -921,29 +982,40 @@
 
       <div class="layout-body">
         <nav class="sidebar" aria-label="Tasks">
-          <button type="button" class="nav-item is-active" data-task="sql" id="nav-sql">
-            <i class="fa-solid fa-database" aria-hidden="true"></i>
-            <span>SQL</span>
-          </button>
-          <button type="button" class="nav-item" data-task="dm-sequence" id="nav-dm-sequence">
-            <i class="fa-solid fa-list-check" aria-hidden="true"></i>
-            <span>Execute sequence</span>
-          </button>
-          <button type="button" class="nav-item" data-task="dm-step" id="nav-dm-step">
-            <i class="fa-solid fa-forward-step" aria-hidden="true"></i>
-            <span>Execute step</span>
-          </button>
-          <button type="button" class="nav-item" data-task="dp-adapter" id="nav-dp-adapter">
-            <i class="fa-solid fa-plug" aria-hidden="true"></i>
-            <span>Data Adapter</span>
-          </button>
-          <button type="button" class="nav-item" data-task="dp-cube-view" id="nav-dp-cube-view">
-            <i class="fa-solid fa-cubes" aria-hidden="true"></i>
-            <span>Cube View command</span>
-          </button>
-          <button type="button" class="nav-item" data-task="dp-method-command" id="nav-dp-method-command">
-            <i class="fa-solid fa-code" aria-hidden="true"></i>
-            <span>Method command</span>
+          <div class="sidebar__tasks">
+            <button type="button" class="nav-item is-active" data-task="sql" id="nav-sql">
+              <i class="fa-solid fa-database" aria-hidden="true"></i>
+              <span>SQL</span>
+            </button>
+            <button type="button" class="nav-item" data-task="dm-sequence" id="nav-dm-sequence">
+              <i class="fa-solid fa-list-check" aria-hidden="true"></i>
+              <span>Execute sequence</span>
+            </button>
+            <button type="button" class="nav-item" data-task="dm-step" id="nav-dm-step">
+              <i class="fa-solid fa-forward-step" aria-hidden="true"></i>
+              <span>Execute step</span>
+            </button>
+            <button type="button" class="nav-item" data-task="dp-adapter" id="nav-dp-adapter">
+              <i class="fa-solid fa-plug" aria-hidden="true"></i>
+              <span>Data Adapter</span>
+            </button>
+            <button type="button" class="nav-item" data-task="dp-cube-view" id="nav-dp-cube-view">
+              <i class="fa-solid fa-cubes" aria-hidden="true"></i>
+              <span>Cube View command</span>
+            </button>
+            <button type="button" class="nav-item" data-task="dp-method-command" id="nav-dp-method-command">
+              <i class="fa-solid fa-code" aria-hidden="true"></i>
+              <span>Method command</span>
+            </button>
+          </div>
+          <button
+            type="button"
+            class="nav-item nav-item--sidebar-end"
+            data-task="changelog"
+            id="nav-changelog"
+          >
+            <i class="fa-solid fa-clipboard-list" aria-hidden="true"></i>
+            <span>Changelog</span>
           </button>
         </nav>
 
@@ -1406,6 +1478,50 @@
                 <pre id="method-result-json"></pre>
                 <div id="method-result-table-wrap" class="result-table-wrap" hidden></div>
               </div>
+            </div>
+          </section>
+
+          <section id="panel-changelog" class="task-panel changelog-panel" hidden>
+            <div class="sql-panel-head">
+              <h2>Changelog</h2>
+              <p>What changed in each version of this UI and API proxy.</p>
+            </div>
+            <div class="changelog-body">
+              <article class="changelog-release" aria-labelledby="changelog-v1-1">
+                <h3 id="changelog-v1-1">v1.1.0</h3>
+                <ul>
+                  <li>
+                    Ribbon layout: application control centered, distinct top bar styling, and a clearer “select
+                    application” banner.
+                  </li>
+                  <li>
+                    Data Management <strong>Execute sequence</strong>: workspace and sequence names from the application
+                    database; optional workspace; API allows empty workspace name when appropriate.
+                  </li>
+                  <li>
+                    Data Management <strong>Execute step</strong>: group and step names from <code>DataMgmtGroup</code> /
+                    <code>DataMgmtStep</code>; REST still uses group and step names.
+                  </li>
+                  <li>
+                    <strong>Data adapter</strong> and <strong>Cube view</strong> name dropdowns from
+                    <code>DashboardAdapter</code> and <code>CubeViewItem</code>.
+                  </li>
+                  <li>
+                    Metadata SQL lists ordered by name; cube view list uses server row order so sorting matches the
+                    database.
+                  </li>
+                  <li>Method command: method type options sorted alphabetically.</li>
+                  <li>Removed long “loaded from …” hints on sequence and step screens.</li>
+                  <li>CSV exports use <strong>semicolon</strong> field separators (Excel-friendly in many locales).</li>
+                </ul>
+              </article>
+              <article class="changelog-release" aria-labelledby="changelog-v1-0">
+                <h3 id="changelog-v1-0">v1.0.0</h3>
+                <ul>
+                  <li>Initial release: PAT sign-in, application picker, SQL and Data Management / Data Provider tasks.</li>
+                  <li>Azure Functions proxy for OneStream REST APIs; static UI with recent-run history per app and sign-in.</li>
+                </ul>
+              </article>
             </div>
           </section>
 

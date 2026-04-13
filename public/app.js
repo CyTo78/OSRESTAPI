@@ -291,22 +291,36 @@
     var dpAdapterPanel = document.getElementById("panel-dp-adapter");
     var dpCubePanel = document.getElementById("panel-dp-cube-view");
     var dpMethodPanel = document.getElementById("panel-dp-method-command");
+    var changelogPanel = document.getElementById("panel-changelog");
     var ph = document.getElementById("panel-placeholder");
+    var banner = document.getElementById("banner-need-app");
     var isSql = task === "sql";
     var isDmSeq = task === "dm-sequence";
     var isDmStep = task === "dm-step";
     var isDpAdapter = task === "dp-adapter";
     var isDpCube = task === "dp-cube-view";
     var isDpMethod = task === "dp-method-command";
+    var isChangelog = task === "changelog";
     if (sqlPanel) sqlPanel.hidden = !isSql;
     if (dmPanel) dmPanel.hidden = !isDmSeq;
     if (dmStepPanel) dmStepPanel.hidden = !isDmStep;
     if (dpAdapterPanel) dpAdapterPanel.hidden = !isDpAdapter;
     if (dpCubePanel) dpCubePanel.hidden = !isDpCube;
     if (dpMethodPanel) dpMethodPanel.hidden = !isDpMethod;
+    if (changelogPanel) changelogPanel.hidden = !isChangelog;
     if (ph)
       ph.hidden =
-        isSql || isDmSeq || isDmStep || isDpAdapter || isDpCube || isDpMethod;
+        isSql ||
+        isDmSeq ||
+        isDmStep ||
+        isDpAdapter ||
+        isDpCube ||
+        isDpMethod ||
+        isChangelog;
+    if (banner) {
+      if (isChangelog) banner.hidden = true;
+      else updateAppBanner();
+    }
     if (isDmSeq) {
       refreshDmSeqListsFromServer();
     }
@@ -318,6 +332,10 @@
     }
     if (isDpCube) {
       refreshCubeViewNamesFromServer();
+    }
+    if (isChangelog) {
+      var mainPanel = document.querySelector(".main-panel");
+      if (mainPanel) mainPanel.scrollTop = 0;
     }
   }
 
