@@ -112,16 +112,143 @@
 
       #login-screen {
         min-height: 100vh;
-        padding: 1.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1.25rem 1rem 2rem;
         overflow: auto;
+        background: var(--color-bg);
       }
-      #login-screen main.container {
-        max-width: 40rem;
+      .login-card {
+        width: 100%;
+        max-width: 26rem;
+        margin: 0 auto;
         background: var(--color-surface);
-        padding: 1.5rem;
+        padding: 1.75rem 1.5rem 1.5rem;
+        border-radius: calc(var(--radius) + 2px);
+        border: 1px solid var(--color-border);
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
+      }
+      [data-theme="dark"] .login-card {
+        box-shadow: 0 4px 28px rgba(0, 0, 0, 0.35);
+      }
+      .login-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1.25rem;
+        border-bottom: 1px solid var(--color-border);
+      }
+      .login-brand {
+        min-width: 0;
+      }
+      .login-title {
+        margin: 0;
+        font-size: 1.35rem;
+        font-weight: 700;
+        line-height: 1.25;
+        color: var(--color-text);
+        letter-spacing: -0.02em;
+      }
+      .login-title .login-title__icon {
+        color: var(--color-accent);
+        margin-right: 0.4rem;
+        font-size: 1.1em;
+        vertical-align: -0.08em;
+      }
+      .login-version {
+        margin: 0.35rem 0 0;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--color-text-muted);
+      }
+      .login-tagline {
+        margin: 0.65rem 0 0;
+        font-size: 0.875rem;
+        line-height: 1.45;
+        color: var(--color-text-muted);
+      }
+      .login-theme-btn {
+        flex-shrink: 0;
+        width: 2.5rem;
+        height: 2.5rem;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         border-radius: var(--radius);
         border: 1px solid var(--color-border);
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+        background: var(--color-surface-2);
+        color: var(--color-text-muted);
+        cursor: pointer;
+        transition: background 0.15s ease, color 0.15s ease;
+      }
+      .login-theme-btn:hover {
+        background: var(--color-nav-active-bg);
+        color: var(--color-accent);
+      }
+      .login-form {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .login-form > label {
+        margin-bottom: 0;
+      }
+      .login-section-title {
+        margin: 0 0 0.65rem;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--color-text-muted);
+      }
+      .login-section + .login-section {
+        margin-top: 1.25rem;
+        padding-top: 1.25rem;
+        border-top: 1px solid var(--color-border);
+      }
+      .login-hint {
+        margin: 1rem 0 0;
+        padding-top: 1rem;
+        border-top: 1px solid var(--color-border);
+        font-size: 0.78rem;
+        line-height: 1.5;
+        color: var(--color-text-muted);
+      }
+      .login-hint code {
+        font-size: 0.88em;
+      }
+      .login-optional {
+        display: block;
+        margin-top: 0.15rem;
+        font-size: 0.72rem;
+        font-weight: 400;
+        text-transform: none;
+        letter-spacing: normal;
+        color: var(--color-text-muted);
+        opacity: 0.92;
+      }
+      .login-submit {
+        width: 100%;
+        margin-top: 1.35rem;
+      }
+      #login-screen #login-result {
+        margin-top: 1rem;
+        padding: 0;
+        background: transparent;
+      }
+      #login-screen #login-result pre {
+        margin: 0;
+        padding: 0.75rem;
+        border-radius: var(--radius);
+        background: var(--color-surface-2);
+        border: 1px solid var(--color-border);
+        font-size: 0.8rem;
+        max-height: 12rem;
+        overflow: auto;
       }
 
       #workspace {
@@ -861,81 +988,88 @@
   </head>
   <body>
     <div id="login-screen">
-      <main class="container">
-        <header
-          style="
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 1rem;
-            flex-wrap: wrap;
-          "
-        >
-          <div>
-            <h1 style="margin-top: 0; font-size: 1.55rem">OneStream REST API services</h1>
-            <p style="color: var(--color-text-muted); font-size: 0.93rem; margin: 0.3rem 0 0">
-              v1.1 · Cyril Toussaint
-            </p>
-            <p style="color: var(--color-text-muted); font-size: 0.9rem; margin: 0.5rem 0 0">
-              Sign in with your PAT, then pick an application and run tasks. Use
-              <code>npm run dev</code> locally; leave the proxy URL empty when UI and API share one host.
+      <main class="login-card">
+        <header class="login-header">
+          <div class="login-brand">
+            <h1 class="login-title">
+              <i class="fa-solid fa-layer-group login-title__icon" aria-hidden="true"></i>
+              OneStream REST API services
+            </h1>
+            <p class="login-version">v1.1 · Cyril Toussaint</p>
+            <p class="login-tagline">
+              Use your OneStream personal access token (PAT). You will choose an application after sign-in.
             </p>
           </div>
-          <div class="ribbon-field ribbon-field--icon-only" style="flex-shrink: 0">
-            <button
-              type="button"
-              class="secondary btn-icon btn-ribbon-icon js-theme-toggle"
-              aria-pressed="false"
-              aria-label="Switch to dark theme"
-              title="Switch to dark theme"
-            >
-              <i class="fa-solid fa-moon js-theme-toggle-icon" aria-hidden="true"></i>
-            </button>
-          </div>
+          <button
+            type="button"
+            class="login-theme-btn js-theme-toggle"
+            aria-pressed="false"
+            aria-label="Switch to dark theme"
+            title="Theme"
+          >
+            <i class="fa-solid fa-moon js-theme-toggle-icon" aria-hidden="true"></i>
+          </button>
         </header>
 
-        <form id="logon-form">
-          <label>
-            API proxy URL
-            <div role="group" class="pat-row">
+        <form id="logon-form" class="login-form">
+          <div class="login-section">
+            <h2 class="login-section-title">Connection</h2>
+            <label>
+              API proxy URL
+              <small class="login-optional">Optional when the UI and API are on the same host.</small>
+              <div role="group" class="pat-row">
+                <input
+                  type="text"
+                  id="api-base"
+                  name="apiBase"
+                  placeholder="e.g. http://127.0.0.1:7071"
+                  autocomplete="off"
+                  spellcheck="false"
+                />
+                <button type="button" class="secondary" id="api-base-clear">Same host</button>
+              </div>
+            </label>
+            <label>
+              Base web URL
               <input
-                type="text"
-                id="api-base"
-                name="apiBase"
-                placeholder="http://127.0.0.1:7071"
-                autocomplete="off"
-                spellcheck="false"
-              />
-              <button type="button" class="secondary" id="api-base-clear">Same host</button>
-            </div>
-          </label>
-          <label>
-            BaseWebServerUrl
-            <input
-              type="url"
-              name="baseWebServerUrl"
-              id="base-web-url"
-              required
-              placeholder="https://host/OneStreamWeb"
-              value="https://emeapoc1.onestreamtest.com/OneStreamWeb"
-            />
-          </label>
-          <label>
-            PAT
-            <div role="group" class="pat-row">
-              <input
-                type="password"
-                id="pat-field"
-                name="pat"
+                type="url"
+                name="baseWebServerUrl"
+                id="base-web-url"
                 required
-                autocomplete="off"
+                placeholder="https://your-server/OneStreamWeb"
+                autocomplete="url"
                 spellcheck="false"
               />
-              <button type="button" class="secondary" id="pat-toggle" aria-pressed="false">Show</button>
-            </div>
-          </label>
-          <button type="submit">Log on</button>
+            </label>
+          </div>
+
+          <div class="login-section">
+            <h2 class="login-section-title">Credentials</h2>
+            <label>
+              Personal access token
+              <div role="group" class="pat-row">
+                <input
+                  type="password"
+                  id="pat-field"
+                  name="pat"
+                  required
+                  autocomplete="off"
+                  spellcheck="false"
+                  placeholder="Paste your PAT"
+                />
+                <button type="button" class="secondary" id="pat-toggle" aria-pressed="false">Show</button>
+              </div>
+            </label>
+          </div>
+
+          <button type="submit" class="login-submit contrast">Log on</button>
         </form>
+
+        <p class="login-hint">
+          <strong>Local development:</strong> run <code>npm run dev</code>. Leave the API proxy URL empty when the
+          static UI and Azure Functions are served together.
+        </p>
+
         <article id="login-result" aria-live="polite"></article>
       </main>
     </div>
