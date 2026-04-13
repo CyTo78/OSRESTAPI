@@ -664,6 +664,15 @@
         margin-bottom: 0.55rem;
         align-items: start;
       }
+      /**
+       * Pico styles [role="group"]:focus-within with a full outline. Our cube-form is a group
+       * wrapping many fields, so focusing one control would outline the entire form — suppress
+       * the container ring; inputs/selects keep their own focus styles.
+       */
+      .cube-form[role="group"]:focus-within {
+        outline: none !important;
+        box-shadow: none !important;
+      }
       /** More space between field groups; pair with labels sitting tight on their controls. */
       .cube-form--method {
         row-gap: 1.05rem;
