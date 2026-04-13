@@ -191,7 +191,23 @@
     }
   }
 
+  function nowMs() {
+    return typeof performance !== "undefined" && typeof performance.now === "function"
+      ? performance.now()
+      : Date.now();
+  }
+
+  /** Result toolbar line: status + round-trip time (browser → proxy → response body received). */
+  function formatHttpMeta(res, elapsedMs) {
+    var line = "HTTP " + res.status + " " + res.statusText;
+    if (typeof elapsedMs === "number" && !isNaN(elapsedMs) && elapsedMs >= 0) {
+      line += " · " + Math.round(elapsedMs) + " ms";
+    }
+    return line;
+  }
+
   async function apiFetchJson(path, body) {
+    var t0 = nowMs();
     var apiBaseInput = document.getElementById("api-base");
     var apiBaseRaw = apiBaseInput ? String(apiBaseInput.value || "").trim() : loadApiBase();
     var apiBase = normalizeApiBase(apiBaseRaw);
@@ -211,7 +227,8 @@
     } catch {
       data = { raw: text };
     }
-    return { res: res, data: data };
+    var elapsedMs = nowMs() - t0;
+    return { res: res, data: data, elapsedMs: elapsedMs };
   }
 
   function clearSession() {
@@ -891,7 +908,7 @@
     if (wrap) wrap.hidden = resultViewMode !== "table";
   }
 
-  function displaySqlResult(res, data) {
+  function displaySqlResult(res, data, elapsedMs) {
     var shell = document.getElementById("sql-result");
     var meta = document.getElementById("sql-result-meta");
     var pre = document.getElementById("sql-result-json");
@@ -904,7 +921,7 @@
       data: data,
     };
 
-    meta.textContent = "HTTP " + res.status + " " + res.statusText;
+    meta.textContent = formatHttpMeta(res, elapsedMs);
     try {
       pre.textContent = JSON.stringify(data, null, 2);
     } catch {
@@ -935,7 +952,7 @@
     if (wrap) wrap.hidden = adapterResultViewMode !== "table";
   }
 
-  function displayAdapterResult(res, data) {
+  function displayAdapterResult(res, data, elapsedMs) {
     var shell = document.getElementById("adapter-result");
     var meta = document.getElementById("adapter-result-meta");
     var pre = document.getElementById("adapter-result-json");
@@ -948,7 +965,7 @@
       data: data,
     };
 
-    meta.textContent = "HTTP " + res.status + " " + res.statusText;
+    meta.textContent = formatHttpMeta(res, elapsedMs);
     try {
       pre.textContent = JSON.stringify(data, null, 2);
     } catch {
@@ -985,7 +1002,7 @@
     if (wrap) wrap.hidden = cubeViewResultViewMode !== "table";
   }
 
-  function displayCubeViewResult(res, data) {
+  function displayCubeViewResult(res, data, elapsedMs) {
     var shell = document.getElementById("cubeview-result");
     var meta = document.getElementById("cubeview-result-meta");
     var pre = document.getElementById("cubeview-result-json");
@@ -998,7 +1015,7 @@
       data: data,
     };
 
-    meta.textContent = "HTTP " + res.status + " " + res.statusText;
+    meta.textContent = formatHttpMeta(res, elapsedMs);
     try {
       pre.textContent = JSON.stringify(data, null, 2);
     } catch {
@@ -1035,7 +1052,7 @@
     if (wrap) wrap.hidden = methodResultViewMode !== "table";
   }
 
-  function displayMethodResult(res, data) {
+  function displayMethodResult(res, data, elapsedMs) {
     var shell = document.getElementById("method-result");
     var meta = document.getElementById("method-result-meta");
     var pre = document.getElementById("method-result-json");
@@ -1048,7 +1065,7 @@
       data: data,
     };
 
-    meta.textContent = "HTTP " + res.status + " " + res.statusText;
+    meta.textContent = formatHttpMeta(res, elapsedMs);
     try {
       pre.textContent = JSON.stringify(data, null, 2);
     } catch {
@@ -1073,13 +1090,13 @@
     return ex && ex.rows && ex.rows.length ? ex.rows : null;
   }
 
-  function displaySimpleJsonResult(res, data, shellId, metaId, preId) {
+  function displaySimpleJsonResult(res, data, shellId, metaId, preId, elapsedMs) {
     var shell = document.getElementById(shellId);
     var meta = document.getElementById(metaId);
     var pre = document.getElementById(preId);
     if (!shell || !meta || !pre) return;
 
-    meta.textContent = "HTTP " + res.status + " " + res.statusText;
+    meta.textContent = formatHttpMeta(res, elapsedMs);
     try {
       pre.textContent =
         typeof data === "string" ? data : JSON.stringify(data, null, 2);
@@ -1089,8 +1106,8 @@
     shell.hidden = false;
   }
 
-  function displayDmResult(res, data) {
-    displaySimpleJsonResult(res, data, "dm-result", "dm-result-meta", "dm-result-json");
+  function displayDmResult(res, data, elapsedMs) {
+    displaySimpleJsonResult(res, data, "dm-result", "dm-result-meta", "dm-result-json", elapsedMs);
   }
 
   function downloadBlob(filename, mime, text) {
@@ -1934,7 +1951,7 @@
         customSubstVarsAsCommaSeparatedPairs: customSubstVarsAsCommaSeparatedPairs,
         sqlApiVersion: "5.2.0",
       });
-      displaySqlResult(r.res, r.data);
+      displaySqlResult(r.res, r.data, r.elapsedMs);
       if (r.res.ok) {
         pushTaskHistory(TASK_KIND_SQL, sel.value, sqlQuery);
       }
@@ -2002,7 +2019,7 @@
           : "",
         apiVersion: "5.2.0",
       });
-      displayDmResult(r.res, r.data);
+      displayDmResult(r.res, r.data, r.elapsedMs);
       if (r.res.ok) {
         var seqSubst = subst ? String(subst.value || "").trim() : "";
         pushTaskHistory(TASK_KIND_SEQ, sel.value, {
@@ -2084,7 +2101,8 @@
         r.data,
         "dm-step-result",
         "dm-step-result-meta",
-        "dm-step-result-json"
+        "dm-step-result-json",
+        r.elapsedMs
       );
       if (r.res.ok) {
         var stepSubst = subst ? String(subst.value || "").trim() : "";
@@ -2170,7 +2188,7 @@
         customSubstVarsAsCommaSeparatedPairs: customSubstVarsAsCommaSeparatedPairs,
         apiVersion: "7.2.0",
       });
-      displayAdapterResult(r.res, r.data);
+      displayAdapterResult(r.res, r.data, r.elapsedMs);
       if (r.res.ok) {
         pushTaskHistory(TASK_KIND_ADAPTER, sel.value, {
           a: adapterName,
@@ -2277,7 +2295,7 @@
         customSubstVarsAsCommaSeparatedPairs: customSubstVarsAsCommaSeparatedPairs,
         apiVersion: "5.2.0",
       });
-      displayCubeViewResult(r.res, r.data);
+      displayCubeViewResult(r.res, r.data, r.elapsedMs);
       if (r.res.ok) {
         pushTaskHistory(TASK_KIND_CUBE, sel.value, {
           v: cubeViewName,
@@ -2364,7 +2382,7 @@
         customSubstVarsAsCommaSeparatedPairs: customSubstVarsAsCommaSeparatedPairs,
         apiVersion: "5.2.0",
       });
-      displayMethodResult(r.res, r.data);
+      displayMethodResult(r.res, r.data, r.elapsedMs);
       if (r.res.ok) {
         pushTaskHistory(TASK_KIND_METHOD, sel.value, {
           t: xfCommandMethodTypeId,
