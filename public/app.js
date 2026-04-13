@@ -71,6 +71,14 @@
       "{Workflow Profile Name}{Scenario Name}{Time Name}{Filter}",
     ExcelFile:
       "{FileSourceType}{UrlOrFullFileName}{Sheet}{NamedRange}{UseFirstRowForColumnNames}{IncludeNumericColumns}{Filter}",
+    FormsStatusForWorkflowUnit:
+      "{Workflow Profile Name}{Scenario Name}{Time Name}{Form Status}{Filter}",
+    Groups:
+      "{GroupName = 'FinanceGroup'}",
+    GroupsForUsers:
+      "{User Filter}{Result Filter}",
+    ICMatchingForWorkflowUnit:
+      "{MyWorkflowProfileName}{Actual}{2015M1}{PlugAccount for Workflow Parameter Set (Exclude A#)}{Empty String or C#MyCurrencyOverride}{Empty String or V#MyViewOverride}{Empty String or A#MyPlugAccountOverride}{Empty String or true/false}{Empty String or 0.0}{Empty String or E#MyEntityOverride}{Empty String or E#MyPartnerOverride}{Empty String or MyDetailDimsOverride (F#All:O#Top:U1#All:U2#All:U3#All:U4#All:U5#All:U6#All:U7#All:U8#All)}{Empty String or Filter Expression}"
   };
 
   /** DataMgmtGroup.UniqueID matches DataMgmtStep.DataMgmtGroupID. */
