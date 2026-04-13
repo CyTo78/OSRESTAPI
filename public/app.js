@@ -51,6 +51,10 @@
   const METHOD_QUERY_SNIPPETS = {
     BiBlendInfo:
       "{MyWorkflowProfileName}{Actual}{2026M1}{Empty String or Filter Expression}",
+    BusinessRule:
+      "{MyBusinessRuleName}{MyDataSetName}{Name1=Value1, Name2=[Value2]}",
+    CertificationForWorkflowUnit:
+      "{MyWorkflowProfileName}{Actual}{2015M1}{true}{Empty String or Filter Expression}",
   };
 
   /** DataMgmtGroup.UniqueID matches DataMgmtStep.DataMgmtGroupID. */
