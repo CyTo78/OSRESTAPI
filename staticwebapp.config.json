@@ -1,0 +1,50 @@
+{
+  "routes": [
+    {
+      "route": "/api/health",
+      "allowedRoles": ["anonymous", "authenticated"]
+    },
+    {
+      "route": "/api/logon",
+      "allowedRoles": ["anonymous", "authenticated"]
+    },
+    {
+      "route": "/api/sql",
+      "allowedRoles": ["anonymous", "authenticated"]
+    },
+    {
+      "route": "/api/execute-sequence",
+      "allowedRoles": ["anonymous", "authenticated"]
+    },
+    {
+      "route": "/api/execute-step",
+      "allowedRoles": ["anonymous", "authenticated"]
+    },
+    {
+      "route": "/api/adapter-dataset",
+      "allowedRoles": ["anonymous", "authenticated"]
+    },
+    {
+      "route": "/api/cube-view-command",
+      "allowedRoles": ["anonymous", "authenticated"]
+    },
+    {
+      "route": "/api/method-command",
+      "allowedRoles": ["anonymous", "authenticated"]
+    },
+    {
+      "route": "/api/*",
+      "allowedRoles": ["authenticated"]
+    }
+  ],
+  "responseOverrides": {
+    "401": {
+      "redirect": "/.auth/login/aad?post_login_redirect_uri=.referrer",
+      "statusCode": 302
+    }
+  },
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["/images/*.{png,jpg,gif,ico}", "/css/*", "/api/*", "/.auth/*"]
+  }
+}

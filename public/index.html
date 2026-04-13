@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OneStream REST API services · v1.0</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <style>
+      /* Prefer OneStream Sans if installed locally (desktop client); Inter otherwise */
+      @font-face {
+        font-family: "OneStream Sans";
+        src: local("OneStream Sans"), local("OneStreamSans-Regular"), local("OneStreamSans");
+        font-weight: 100 900;
+        font-style: normal;
+        font-display: swap;
+      }
+
+      :root {
+        --font-ui: "OneStream Sans", Inter, "Segoe UI", system-ui, -apple-system, sans-serif;
+        --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, monospace;
+        --radius: 8px;
+        --ribbon-h: 2.5rem;
+        --color-bg: #eef1f4;
+        --color-surface: #ffffff;
+        --color-surface-2: #f4f6f9;
+        --color-border: #d8dee6;
+        --color-text: #1a1f26;
+        --color-text-muted: #5c6570;
+        --color-accent: #0b5cab;
+        --color-accent-hover: #094a8f;
+        --color-sidebar: #e4e9ef;
+        --color-nav-active-bg: #ffffff;
+        --color-nav-active-border: var(--color-accent);
+        --color-warn-bg: #fff8e6;
+        --color-warn-border: #e8b931;
+        --color-warn-text: #5c4a00;
+        --shadow-bar: 0 1px 0 rgba(0, 0, 0, 0.06);
+      }
+
+      [data-theme="dark"] {
+        color-scheme: dark;
+        --color-bg: #12151a;
+        --color-surface: #1c2128;
+        --color-surface-2: #252b33;
+        --color-border: #3d4654;
+        --color-text: #e8eaed;
+        --color-text-muted: #9aa3ad;
+        --color-accent: #4da3ff;
+        --color-accent-hover: #7ab8ff;
+        --color-sidebar: #161b22;
+        --color-nav-active-bg: #252b33;
+        --color-nav-active-border: var(--color-accent);
+        --color-warn-bg: #3d3420;
+        --color-warn-border: #a67c00;
+        --color-warn-text: #fcefb4;
+        --shadow-bar: 0 1px 0 rgba(0, 0, 0, 0.35);
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: var(--font-ui);
+        font-size: 14px;
+        line-height: 1.45;
+        color: var(--color-text);
+        background: var(--color-bg);
+      }
+
+      body.mode-workspace {
+        height: 100vh;
+        overflow: hidden;
+      }
+
+      .pat-row {
+        display: flex;
+        gap: 0.5rem;
+        align-items: stretch;
+      }
+      .pat-row input {
+        flex: 1;
+        margin-bottom: 0;
+      }
+      .pat-row button {
+        flex: 0 0 auto;
+        margin-bottom: 0;
+        white-space: nowrap;
+      }
+
+      #login-screen {
+        min-height: 100vh;
+        padding: 1.25rem;
+        overflow: auto;
+      }
+      #login-screen main.container {
+        max-width: 40rem;
+        background: var(--color-surface);
+        padding: 1.5rem;
+        border-radius: var(--radius);
+        border: 1px solid var(--color-border);
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+      }
+
+      #workspace {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        background: var(--color-bg);
+      }
+
+      .top-bar {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        min-height: calc(var(--ribbon-h) + 1.1rem);
+        padding: 0.55rem 1rem;
+        background: var(--color-surface);
+        border-bottom: 1px solid var(--color-border);
+        box-shadow: var(--shadow-bar);
+      }
+      .top-bar__brand {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: center;
+        gap: 0.1rem;
+        margin: 0;
+        line-height: 1.2;
+      }
+      .top-bar__brand-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.98rem;
+        font-weight: 700;
+        color: var(--color-text);
+        white-space: nowrap;
+      }
+      .top-bar__brand-title i {
+        color: var(--color-accent);
+      }
+      .top-bar__brand-meta {
+        font-size: 0.7rem;
+        font-weight: 500;
+        color: var(--color-text-muted);
+        white-space: nowrap;
+      }
+      .top-bar__actions {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+      }
+      .ribbon-field {
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+        margin: 0;
+      }
+      .ribbon-field span.ribbon-label {
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--color-text-muted);
+        white-space: nowrap;
+      }
+      .ribbon-field select,
+      .ribbon-field button {
+        height: var(--ribbon-h);
+        margin: 0;
+        padding: 0 0.75rem;
+        font-size: 0.8125rem;
+        line-height: 1.2;
+      }
+      .btn-ribbon-icon {
+        width: var(--ribbon-h);
+        min-width: var(--ribbon-h);
+        max-width: var(--ribbon-h);
+        padding: 0;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .btn-ribbon-icon i {
+        margin: 0;
+      }
+      .top-bar__actions .btn-ribbon-icon {
+        height: var(--ribbon-h);
+        min-height: var(--ribbon-h);
+        max-height: var(--ribbon-h);
+        box-sizing: border-box;
+      }
+      .ribbon-field select {
+        min-width: 12rem;
+        max-width: 20rem;
+      }
+      .ribbon-field--icon-only {
+        margin: 0;
+        align-items: center;
+      }
+      .ribbon-field--icon-only .btn-ribbon-icon {
+        margin: 0;
+      }
+      .btn-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4rem;
+      }
+
+      .layout-body {
+        display: flex;
+        flex: 1;
+        min-height: 0;
+        overflow: hidden;
+      }
+
+      .sidebar {
+        width: 200px;
+        flex-shrink: 0;
+        background: var(--color-sidebar);
+        border-right: 1px solid var(--color-border);
+        padding: 0.45rem 0;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: flex-start;
+        align-content: flex-start;
+        gap: 0.2rem;
+        overflow-y: auto;
+      }
+      .nav-item {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        width: 100%;
+        padding: 0.4rem 0.75rem;
+        border: none;
+        border-left: 3px solid transparent;
+        background: transparent;
+        color: var(--color-text);
+        font: inherit;
+        font-size: 0.84rem;
+        text-align: left;
+        cursor: pointer;
+        border-radius: 0 var(--radius) var(--radius) 0;
+      }
+      .nav-item:hover {
+        background: rgba(0, 0, 0, 0.05);
+      }
+      [data-theme="dark"] .nav-item:hover {
+        background: rgba(255, 255, 255, 0.06);
+      }
+      .nav-item.is-active {
+        background: var(--color-nav-active-bg);
+        border-left-color: var(--color-nav-active-border);
+        font-weight: 600;
+      }
+      .nav-item:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+      .nav-item i {
+        width: 1.15rem;
+        text-align: center;
+        color: var(--color-text-muted);
+      }
+      .nav-item.is-active i {
+        color: var(--color-accent);
+      }
+
+      .main-panel {
+        flex: 1;
+        min-width: 0;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        overflow-x: hidden;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        background: var(--color-surface);
+      }
+
+      .banner-warn {
+        flex-shrink: 0;
+        padding: 0.5rem 0.85rem;
+        margin: 0.65rem 0.85rem 0;
+        background: var(--color-warn-bg);
+        border: 1px solid var(--color-warn-border);
+        border-radius: var(--radius);
+        color: var(--color-warn-text);
+        font-size: 0.85rem;
+      }
+
+      .task-panel {
+        flex: 0 0 auto;
+        display: flex;
+        flex-direction: column;
+        padding: 0.65rem 0.85rem 1rem;
+        overflow: visible;
+      }
+      .task-panel[hidden] {
+        display: none !important;
+      }
+
+      .sql-panel-head {
+        flex-shrink: 0;
+        margin-bottom: 0.45rem;
+      }
+      .sql-panel-head h2 {
+        margin: 0 0 0.2rem;
+        font-size: 0.95rem;
+        font-weight: 700;
+      }
+      .sql-panel-head p {
+        margin: 0;
+        font-size: 0.8rem;
+        color: var(--color-text-muted);
+      }
+
+      .sql-options-row {
+        flex-shrink: 0;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        gap: 0.5rem 0.75rem;
+        margin-bottom: 0.45rem;
+      }
+      .sql-options-row label {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        margin: 0;
+        font-size: 0.78rem;
+        font-weight: 600;
+        line-height: 1.3;
+        gap: 0.35rem;
+      }
+      .sql-options-row input,
+      .sql-options-row select {
+        margin: 0;
+        font-size: 0.85rem;
+        padding: 0 0.5rem;
+        max-width: 16rem;
+        height: 2.5rem;
+        min-height: 2.5rem;
+        box-sizing: border-box;
+        line-height: 1.25;
+      }
+      .sql-options-row label.wide {
+        flex: 1 1 12rem;
+        min-width: 8rem;
+      }
+      .sql-options-row label.wide input {
+        max-width: none;
+        width: 100%;
+      }
+
+      /* Cube view command — aligned form (avoids Pico checkbox / flex row clashes) */
+      .cube-form {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.65rem 1rem;
+        margin-bottom: 0.55rem;
+        align-items: start;
+      }
+      .cube-form__field {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+        margin: 0;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--color-text);
+      }
+      .cube-form__field--full {
+        grid-column: 1 / -1;
+      }
+      .cube-form__label-line {
+        font-size: 0.78rem;
+        font-weight: 600;
+        line-height: 1.3;
+        margin: 0;
+        color: var(--color-text);
+      }
+      .cube-form__hint-row {
+        min-height: calc(0.72rem * 1.35 * 2);
+        font-size: 0.72rem;
+        line-height: 1.35;
+        font-weight: 400;
+        color: var(--color-text-muted);
+      }
+      .cube-form__hint-row .cube-form__hint--placeholder {
+        visibility: hidden;
+      }
+      .cube-form__field span.cube-form__hint,
+      .cube-form__field .cube-form__hint {
+        font-weight: 400;
+        color: var(--color-text-muted);
+        font-size: 0.72rem;
+        line-height: 1.35;
+      }
+      .cube-form__field input[type="text"],
+      .cube-form__field select,
+      .cube-form__field textarea.sql-editor {
+        width: 100%;
+        max-width: none;
+        margin: 0;
+        font-size: 0.85rem;
+        padding: 0.4rem 0.55rem;
+        font-weight: 400;
+      }
+      .cube-form__field textarea.sql-editor {
+        font-family: var(--font-mono);
+        line-height: 1.35;
+      }
+      .cube-form__toggle {
+        padding: 0.45rem 0.55rem;
+        background: var(--color-surface-2);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius);
+        font-weight: 600;
+      }
+      .cube-form__toggle .cube-form__check {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.55rem;
+        margin: 0.35rem 0 0;
+        font-weight: 400;
+        font-size: 0.8rem;
+        line-height: 1.4;
+        cursor: pointer;
+      }
+      .cube-form__toggle .cube-form__check input[type="checkbox"] {
+        width: 1.15rem;
+        height: 1.15rem;
+        min-width: 1.15rem;
+        margin: 0.15rem 0 0;
+        flex-shrink: 0;
+        accent-color: var(--color-accent);
+        cursor: pointer;
+        appearance: auto;
+        -webkit-appearance: auto;
+      }
+      .cube-form__toggle .cube-form__check code {
+        font-size: 0.72rem;
+      }
+      @media (max-width: 640px) {
+        .cube-form {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .sql-history {
+        flex-shrink: 0;
+        margin-bottom: 0.45rem;
+        padding: 0.4rem 0.5rem;
+        background: var(--color-surface-2);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius);
+      }
+      .sql-history h3 {
+        margin: 0 0 0.35rem;
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: var(--color-text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
+      .sql-history-scroll {
+        display: flex;
+        gap: 0.35rem;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding-bottom: 0.15rem;
+        white-space: nowrap;
+      }
+      .sql-history-scroll button {
+        flex-shrink: 0;
+        font-size: 0.72rem;
+        padding: 0.2rem 0.45rem;
+        margin: 0;
+      }
+
+      .sql-editor-wrap {
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 0.45rem;
+      }
+      .sql-editor-wrap label {
+        margin: 0 0 0.2rem;
+        font-size: 0.78rem;
+        font-weight: 600;
+      }
+      .sql-editor {
+        width: 100%;
+        min-height: 5rem;
+        max-height: min(22rem, 45vh);
+        resize: vertical;
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        line-height: 1.35;
+        padding: 0.45rem 0.55rem;
+        border-radius: var(--radius);
+        border: 1px solid var(--color-border);
+        background: var(--color-surface-2);
+        color: var(--color-text);
+      }
+
+      .sql-run-row {
+        flex-shrink: 0;
+        margin-bottom: 0.45rem;
+      }
+      .sql-run-row button {
+        margin: 0;
+      }
+
+      .result-shell {
+        flex: 0 0 auto;
+        display: flex;
+        flex-direction: column;
+        margin-top: 0.35rem;
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius);
+        background: var(--color-surface-2);
+        overflow: visible;
+      }
+      .result-shell[hidden] {
+        display: none !important;
+      }
+      .result-toolbar {
+        flex-shrink: 0;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem 0.75rem;
+        padding: 0.4rem 0.55rem;
+        background: var(--color-surface);
+        border-bottom: 1px solid var(--color-border);
+      }
+      .result-toolbar .seg {
+        display: inline-flex;
+        border-radius: var(--radius);
+        border: 1px solid var(--color-border);
+        overflow: hidden;
+      }
+      .result-toolbar .seg button {
+        margin: 0;
+        border: none;
+        border-radius: 0;
+        font-size: 0.78rem;
+        padding: 0.35rem 0.65rem;
+        background: transparent;
+        color: var(--color-text-muted);
+      }
+      .result-toolbar .seg button.is-on {
+        background: var(--color-accent);
+        color: #fff;
+      }
+      [data-theme="dark"] .result-toolbar .seg button.is-on {
+        color: #0d1117;
+      }
+      .result-toolbar .export-group {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.35rem;
+      }
+      .result-toolbar .export-group span {
+        font-size: 0.72rem;
+        color: var(--color-text-muted);
+        font-weight: 600;
+      }
+      .result-toolbar button.small-export {
+        font-size: 0.75rem;
+        padding: 0.3rem 0.5rem;
+        margin: 0;
+      }
+      .result-meta {
+        flex-shrink: 0;
+        font-size: 0.75rem;
+        padding: 0.35rem 0.55rem;
+        color: var(--color-text-muted);
+        border-bottom: 1px solid var(--color-border);
+        background: var(--color-surface);
+        font-family: var(--font-mono);
+      }
+      .result-scroll {
+        flex: 0 0 auto;
+        overflow: visible;
+      }
+      .result-scroll pre {
+        margin: 0;
+        padding: 0.65rem;
+        white-space: pre-wrap;
+        word-break: break-word;
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        line-height: 1.4;
+        color: var(--color-text);
+      }
+      .result-table-wrap {
+        padding: 0;
+      }
+      .result-table-wrap[hidden] {
+        display: none !important;
+      }
+      /* Horizontal scroll for wide tables; inner wrapper avoids breaking sticky thead vs. main scroll */
+      .result-table-scroll-inner {
+        overflow-x: auto;
+        max-width: 100%;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-gutter: stable;
+        scrollbar-width: thin;
+        scrollbar-color: var(--color-border) var(--color-surface-2);
+      }
+      .result-table-scroll-inner::-webkit-scrollbar {
+        height: 10px;
+      }
+      .result-table-scroll-inner::-webkit-scrollbar-track {
+        background: var(--color-surface-2);
+        border-radius: 5px;
+      }
+      .result-table-scroll-inner::-webkit-scrollbar-thumb {
+        background: var(--color-border);
+        border-radius: 5px;
+      }
+      .result-table-scroll-inner::-webkit-scrollbar-thumb:hover {
+        background: var(--color-text-muted);
+      }
+      .result-table-wrap table {
+        width: max-content;
+        min-width: 100%;
+        border-collapse: collapse;
+        font-size: 0.78rem;
+      }
+      .result-table-wrap th,
+      .result-table-wrap td {
+        border: 1px solid var(--color-border);
+        padding: 0.35rem 0.5rem;
+        text-align: left;
+        vertical-align: top;
+      }
+      .result-table-wrap th {
+        position: sticky;
+        top: 0;
+        background: var(--color-surface);
+        font-weight: 600;
+        z-index: 1;
+        box-shadow: 0 1px 0 var(--color-border);
+      }
+      .result-table-wrap tr:nth-child(even) td {
+        background: rgba(0, 0, 0, 0.02);
+      }
+      [data-theme="dark"] .result-table-wrap tr:nth-child(even) td {
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      @media (max-width: 768px) {
+        .layout-body {
+          flex-direction: column;
+        }
+        .sidebar {
+          width: 100%;
+          flex-direction: row;
+          flex-wrap: wrap;
+          border-right: none;
+          border-bottom: 1px solid var(--color-border);
+          max-height: 30vh;
+        }
+        .nav-item {
+          flex: 1 1 40%;
+          border-left: none;
+          border-bottom: 2px solid transparent;
+          border-radius: var(--radius);
+        }
+        .nav-item.is-active {
+          border-left: none;
+          border-bottom-color: var(--color-nav-active-border);
+        }
+        .top-bar {
+          flex-wrap: wrap;
+        }
+        .ribbon-field select {
+          max-width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="login-screen">
+      <main class="container">
+        <header
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+            flex-wrap: wrap;
+          "
+        >
+          <div>
+            <h1 style="margin-top: 0">OneStream REST API services</h1>
+            <p style="color: var(--color-text-muted); font-size: 0.82rem; margin: 0.25rem 0 0">
+              v1.0 · Cyril Toussaint
+            </p>
+            <p style="color: var(--color-text-muted); font-size: 0.9rem; margin: 0.5rem 0 0">
+              Sign in with your PAT, then pick an application and run tasks. Use
+              <code>npm run dev</code> locally; leave the proxy URL empty when UI and API share one host.
+            </p>
+          </div>
+          <div class="ribbon-field ribbon-field--icon-only" style="flex-shrink: 0">
+            <button
+              type="button"
+              class="secondary btn-icon btn-ribbon-icon js-theme-toggle"
+              aria-pressed="false"
+              aria-label="Switch to dark theme"
+              title="Switch to dark theme"
+            >
+              <i class="fa-solid fa-moon js-theme-toggle-icon" aria-hidden="true"></i>
+            </button>
+          </div>
+        </header>
+
+        <form id="logon-form">
+          <label>
+            API proxy URL
+            <div role="group" class="pat-row">
+              <input
+                type="text"
+                id="api-base"
+                name="apiBase"
+                placeholder="http://127.0.0.1:7071"
+                autocomplete="off"
+                spellcheck="false"
+              />
+              <button type="button" class="secondary" id="api-base-clear">Same host</button>
+            </div>
+          </label>
+          <label>
+            BaseWebServerUrl
+            <input
+              type="url"
+              name="baseWebServerUrl"
+              id="base-web-url"
+              required
+              placeholder="https://host/OneStreamWeb"
+              value="https://emeapoc1.onestreamtest.com/OneStreamWeb"
+            />
+          </label>
+          <label>
+            PAT
+            <div role="group" class="pat-row">
+              <input
+                type="password"
+                id="pat-field"
+                name="pat"
+                required
+                autocomplete="off"
+                spellcheck="false"
+              />
+              <button type="button" class="secondary" id="pat-toggle" aria-pressed="false">Show</button>
+            </div>
+          </label>
+          <button type="submit">Log on</button>
+        </form>
+        <article id="login-result" aria-live="polite"></article>
+      </main>
+    </div>
+
+    <div id="workspace" hidden>
+      <header class="top-bar">
+        <div class="top-bar__brand">
+          <span class="top-bar__brand-title">
+            <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
+            OneStream REST API services
+          </span>
+          <span class="top-bar__brand-meta">v1.0 · Cyril Toussaint</span>
+        </div>
+        <div class="top-bar__actions">
+          <label class="ribbon-field">
+            <span class="ribbon-label">Application</span>
+            <select id="app-select" required>
+              <option value="">— Select —</option>
+            </select>
+          </label>
+          <div class="ribbon-field ribbon-field--icon-only">
+            <button
+              type="button"
+              class="secondary btn-icon btn-ribbon-icon js-theme-toggle"
+              aria-pressed="false"
+              aria-label="Switch to dark theme"
+              title="Switch to dark theme"
+            >
+              <i class="fa-solid fa-moon js-theme-toggle-icon" aria-hidden="true"></i>
+            </button>
+          </div>
+          <div class="ribbon-field ribbon-field--icon-only">
+            <button
+              type="button"
+              class="secondary btn-icon btn-ribbon-icon"
+              id="btn-disconnect"
+              title="Disconnect"
+              aria-label="Disconnect"
+            >
+              <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <div class="layout-body">
+        <nav class="sidebar" aria-label="Tasks">
+          <button type="button" class="nav-item is-active" data-task="sql" id="nav-sql">
+            <i class="fa-solid fa-database" aria-hidden="true"></i>
+            <span>SQL</span>
+          </button>
+          <button type="button" class="nav-item" data-task="dm-sequence" id="nav-dm-sequence">
+            <i class="fa-solid fa-list-check" aria-hidden="true"></i>
+            <span>Execute sequence</span>
+          </button>
+          <button type="button" class="nav-item" data-task="dm-step" id="nav-dm-step">
+            <i class="fa-solid fa-forward-step" aria-hidden="true"></i>
+            <span>Execute step</span>
+          </button>
+          <button type="button" class="nav-item" data-task="dp-adapter" id="nav-dp-adapter">
+            <i class="fa-solid fa-plug" aria-hidden="true"></i>
+            <span>Data Adapter</span>
+          </button>
+          <button type="button" class="nav-item" data-task="dp-cube-view" id="nav-dp-cube-view">
+            <i class="fa-solid fa-cubes" aria-hidden="true"></i>
+            <span>Cube View command</span>
+          </button>
+          <button type="button" class="nav-item" data-task="dp-method-command" id="nav-dp-method-command">
+            <i class="fa-solid fa-code" aria-hidden="true"></i>
+            <span>Method command</span>
+          </button>
+        </nav>
+
+        <main class="main-panel">
+          <div id="banner-need-app" class="banner-warn" hidden>
+            Select an <strong>application</strong> in the ribbon before running SQL, Data Management, or data provider
+            tasks.
+          </div>
+
+          <section id="panel-sql" class="task-panel">
+            <div class="sql-panel-head">
+              <h2>SQL query</h2>
+              <p>
+                <code>GetAdoDataSetForSqlCommand</code> · API <code>5.2.0</code> · same body as Postman
+              </p>
+            </div>
+
+            <div class="sql-options-row">
+              <label>
+                DB location
+                <select id="sql-db-location">
+                  <option value="Application" selected>Application</option>
+                  <option value="External">External</option>
+                </select>
+              </label>
+              <label id="sql-external-wrap" hidden>
+                External connection
+                <input type="text" id="sql-external-conn" placeholder="XFExternalDBConnectionName" autocomplete="off" />
+              </label>
+              <label>
+                Result table name
+                <input type="text" id="sql-result-table" value="" placeholder="Optional" autocomplete="off" />
+              </label>
+              <label class="wide">
+                CustomSubstVars (optional)
+                <input type="text" id="sql-subst-vars" placeholder="Leave empty if none" autocomplete="off" />
+              </label>
+            </div>
+
+            <div class="sql-history" id="sql-history-block">
+              <h3>Recent · 10 max · per application · per sign-in · this browser</h3>
+              <div id="sql-history-list" class="sql-history-scroll" aria-label="Recent SQL"></div>
+            </div>
+
+            <div class="sql-editor-wrap">
+              <label for="sql-input">SqlQuery</label>
+              <textarea
+                id="sql-input"
+                class="sql-editor"
+                placeholder="SELECT …"
+                rows="4"
+              ></textarea>
+            </div>
+
+            <div class="sql-run-row">
+              <button type="button" id="btn-run-sql" class="btn-icon">
+                <i class="fa-solid fa-play" aria-hidden="true"></i>
+                Run SQL
+              </button>
+            </div>
+
+            <div id="sql-result" class="result-shell" hidden>
+              <div class="result-toolbar">
+                <div class="seg" role="group" aria-label="Result view">
+                  <button type="button" id="view-json" class="is-on">JSON</button>
+                  <button type="button" id="view-table">Table</button>
+                </div>
+                <div class="export-group">
+                  <span>Export</span>
+                  <button type="button" class="secondary small-export" id="export-json">JSON</button>
+                  <button type="button" class="secondary small-export" id="export-csv">CSV</button>
+                  <button type="button" class="secondary small-export" id="export-xlsx">Excel</button>
+                </div>
+              </div>
+              <div id="sql-result-meta" class="result-meta"></div>
+              <div class="result-scroll">
+                <pre id="sql-result-json"></pre>
+                <div id="sql-result-table-wrap" class="result-table-wrap" hidden></div>
+              </div>
+            </div>
+          </section>
+
+          <section id="panel-dm-sequence" class="task-panel" hidden>
+            <div class="sql-panel-head">
+              <h2>Data Management · Execute sequence</h2>
+              <p>
+                <code>DataManagement/ExecuteSequence</code> · API <code>5.2.0</code> ·
+                <code>ApplicationName</code> uses the ribbon application.
+              </p>
+            </div>
+
+            <div class="sql-options-row">
+              <label>
+                Workspace name
+                <input type="text" id="dm-workspace" placeholder="e.g. Agent1" autocomplete="off" />
+              </label>
+              <label class="wide">
+                Sequence name
+                <input type="text" id="dm-sequence-name" placeholder="e.g. Agent1_Consolidate" autocomplete="off" />
+              </label>
+              <label class="wide">
+                CustomSubstVars (optional)
+                <input
+                  type="text"
+                  id="dm-subst-vars"
+                  placeholder="P_Scenario=[Actual],P_Time=[2026M1],…"
+                  autocomplete="off"
+                />
+              </label>
+            </div>
+
+            <div class="sql-history" id="dm-seq-history-block">
+              <h3>Recent sequences · 10 max · per application · per sign-in</h3>
+              <div id="dm-seq-history-list" class="sql-history-scroll" aria-label="Recent sequences"></div>
+            </div>
+
+            <div class="sql-run-row">
+              <button type="button" id="btn-run-dm-sequence" class="btn-icon">
+                <i class="fa-solid fa-play" aria-hidden="true"></i>
+                Run sequence
+              </button>
+            </div>
+
+            <div id="dm-result" class="result-shell" hidden>
+              <div id="dm-result-meta" class="result-meta"></div>
+              <div class="result-scroll">
+                <pre id="dm-result-json"></pre>
+              </div>
+            </div>
+          </section>
+
+          <section id="panel-dm-step" class="task-panel" hidden>
+            <div class="sql-panel-head">
+              <h2>Data Management · Execute step</h2>
+              <p>
+                <code>DataManagement/ExecuteStep</code> · API <code>5.2.0</code> ·
+                <code>ApplicationName</code> uses the ribbon application.
+              </p>
+            </div>
+
+            <div class="sql-options-row">
+              <label class="wide">
+                Data management group name
+                <input
+                  type="text"
+                  id="dm-step-group"
+                  placeholder="Existing group name"
+                  autocomplete="off"
+                />
+              </label>
+              <label class="wide">
+                Step name
+                <input type="text" id="dm-step-name" placeholder="Existing step name" autocomplete="off" />
+              </label>
+              <label class="wide">
+                CustomSubstVars (optional)
+                <input
+                  type="text"
+                  id="dm-step-subst-vars"
+                  placeholder="VariableName1=[Value1],VariableName2=[Value2],…"
+                  autocomplete="off"
+                />
+              </label>
+            </div>
+
+            <div class="sql-history" id="dm-step-history-block">
+              <h3>Recent steps · 10 max · per application · per sign-in</h3>
+              <div id="dm-step-history-list" class="sql-history-scroll" aria-label="Recent steps"></div>
+            </div>
+
+            <div class="sql-run-row">
+              <button type="button" id="btn-run-dm-step" class="btn-icon">
+                <i class="fa-solid fa-play" aria-hidden="true"></i>
+                Run step
+              </button>
+            </div>
+
+            <div id="dm-step-result" class="result-shell" hidden>
+              <div id="dm-step-result-meta" class="result-meta"></div>
+              <div class="result-scroll">
+                <pre id="dm-step-result-json"></pre>
+              </div>
+            </div>
+          </section>
+
+          <section id="panel-dp-adapter" class="task-panel" hidden>
+            <div class="sql-panel-head">
+              <h2>Data Provider · Data adapter</h2>
+              <p>
+                <code>GetAdoDataSetForAdapter</code> · API <code>5.2.0</code> ·
+                <code>WorkspaceName</code> is sent as <code>""</code> (reserved). Ribbon supplies
+                <code>ApplicationName</code>.
+              </p>
+            </div>
+
+            <div class="sql-options-row">
+              <label class="wide">
+                Adapter name
+                <input type="text" id="dp-adapter-name" placeholder="Existing adapter name" autocomplete="off" />
+              </label>
+              <label class="wide">
+                Result table name
+                <input type="text" id="dp-adapter-result-table" value="" placeholder="Optional" autocomplete="off" />
+              </label>
+              <label class="wide">
+                CustomSubstVars (optional)
+                <input
+                  type="text"
+                  id="dp-adapter-subst-vars"
+                  placeholder="VariableName1=[Value1],VariableName2=[Value2],…"
+                  autocomplete="off"
+                />
+              </label>
+            </div>
+
+            <div class="sql-history" id="adapter-history-block">
+              <h3>Recent adapters · 10 max · per application · per sign-in</h3>
+              <div id="adapter-history-list" class="sql-history-scroll" aria-label="Recent adapters"></div>
+            </div>
+
+            <div class="sql-run-row">
+              <button type="button" id="btn-run-adapter-dataset" class="btn-icon">
+                <i class="fa-solid fa-play" aria-hidden="true"></i>
+                Run adapter
+              </button>
+            </div>
+
+            <div id="adapter-result" class="result-shell" hidden>
+              <div class="result-toolbar">
+                <div class="seg" role="group" aria-label="Adapter result view">
+                  <button type="button" id="adapter-view-json" class="is-on">JSON</button>
+                  <button type="button" id="adapter-view-table">Table</button>
+                </div>
+                <div class="export-group">
+                  <span>Export</span>
+                  <button type="button" class="secondary small-export" id="adapter-export-json">JSON</button>
+                  <button type="button" class="secondary small-export" id="adapter-export-csv">CSV</button>
+                  <button type="button" class="secondary small-export" id="adapter-export-xlsx">Excel</button>
+                </div>
+              </div>
+              <div id="adapter-result-meta" class="result-meta"></div>
+              <div class="result-scroll">
+                <pre id="adapter-result-json"></pre>
+                <div id="adapter-result-table-wrap" class="result-table-wrap" hidden></div>
+              </div>
+            </div>
+          </section>
+
+          <section id="panel-dp-cube-view" class="task-panel" hidden>
+            <div class="sql-panel-head">
+              <h2>Data Provider · Cube view command</h2>
+              <p>
+                <code>GetAdoDataSetForCubeViewCommand</code> · API <code>5.2.0</code> · ribbon supplies
+                <code>ApplicationName</code>.
+              </p>
+            </div>
+
+            <div class="cube-form" role="group" aria-label="Cube view parameters">
+              <label class="cube-form__field cube-form__field--full" for="dp-cube-view-name">
+                Cube view name
+                <input type="text" id="dp-cube-view-name" placeholder="Existing cube view name" autocomplete="off" />
+              </label>
+
+              <div class="cube-form__field cube-form__field--full cube-form__toggle">
+                <span>Result layout</span>
+                <span class="cube-form__hint">When enabled, the API returns a separate data table for each cube view row.</span>
+                <label class="cube-form__check" for="dp-cube-per-row">
+                  <input type="checkbox" id="dp-cube-per-row" />
+                  <span>One data table per cube view row (<code>DataTablePerCubeViewRow</code>)</span>
+                </label>
+              </div>
+
+              <label class="cube-form__field" for="dp-cube-result-table">
+                <span class="cube-form__label-line">Result table name</span>
+                <span class="cube-form__hint-row">
+                  <span class="cube-form__hint">Optional — name for the table in the returned DataSet.</span>
+                </span>
+                <input type="text" id="dp-cube-result-table" value="" placeholder="Optional" autocomplete="off" />
+              </label>
+
+              <label class="cube-form__field" for="dp-cube-subst-vars">
+                <span class="cube-form__label-line">CustomSubstVars (optional)</span>
+                <span class="cube-form__hint-row" aria-hidden="true">
+                  <span class="cube-form__hint cube-form__hint--placeholder">&#160;</span>
+                </span>
+                <input
+                  type="text"
+                  id="dp-cube-subst-vars"
+                  placeholder="VariableName1=[Value1],VariableName2=[Value2],…"
+                  autocomplete="off"
+                />
+              </label>
+            </div>
+
+            <div class="sql-editor-wrap">
+              <label for="dp-cube-table-options">CubeViewDataTableOptions (optional JSON object)</label>
+              <textarea
+                id="dp-cube-table-options"
+                class="sql-editor"
+                rows="4"
+                placeholder='e.g. { "IncludeMemberDetails": true }'
+                spellcheck="false"
+              ></textarea>
+            </div>
+
+            <div class="sql-history" id="cube-history-block">
+              <h3>Recent cube views · 10 max · per application · per sign-in</h3>
+              <div id="cube-history-list" class="sql-history-scroll" aria-label="Recent cube view commands"></div>
+            </div>
+
+            <div class="sql-run-row">
+              <button type="button" id="btn-run-cube-view-command" class="btn-icon">
+                <i class="fa-solid fa-play" aria-hidden="true"></i>
+                Run cube view
+              </button>
+            </div>
+
+            <div id="cubeview-result" class="result-shell" hidden>
+              <div class="result-toolbar">
+                <div class="seg" role="group" aria-label="Cube view result view">
+                  <button type="button" id="cubeview-view-json" class="is-on">JSON</button>
+                  <button type="button" id="cubeview-view-table">Table</button>
+                </div>
+                <div class="export-group">
+                  <span>Export</span>
+                  <button type="button" class="secondary small-export" id="cubeview-export-json">JSON</button>
+                  <button type="button" class="secondary small-export" id="cubeview-export-csv">CSV</button>
+                  <button type="button" class="secondary small-export" id="cubeview-export-xlsx">Excel</button>
+                </div>
+              </div>
+              <div id="cubeview-result-meta" class="result-meta"></div>
+              <div class="result-scroll">
+                <pre id="cubeview-result-json"></pre>
+                <div id="cubeview-result-table-wrap" class="result-table-wrap" hidden></div>
+              </div>
+            </div>
+          </section>
+
+          <section id="panel-dp-method-command" class="task-panel" hidden>
+            <div class="sql-panel-head">
+              <h2>Data Provider · Method command</h2>
+              <p>
+                <code>GetAdoDataSetForMethodCommand</code> · API <code>5.2.0</code> · ribbon supplies
+                <code>ApplicationName</code>.
+              </p>
+            </div>
+
+            <div class="cube-form" role="group" aria-label="Method command parameters">
+              <label class="cube-form__field cube-form__field--full" for="dp-method-xf-type">
+                <span class="cube-form__label-line">Method type</span>
+                <span class="cube-form__hint-row">
+                  <span class="cube-form__hint">Pre-defined XF method command type (list may change in a future release).</span>
+                </span>
+                <select id="dp-method-xf-type" required>
+                  <option value="">— Select command type —</option>
+                  <option value="WorkflowCalculationEntities">WorkflowCalculationEntities</option>
+                  <option value="WorkflowConfirmationEntities">WorkflowConfirmationEntities</option>
+                  <option value="WorkflowProfileAndDependentProfileEntities">
+                    WorkflowProfileAndDependentProfileEntities
+                  </option>
+                  <option value="WorkflowProfileEntities">WorkflowProfileEntities</option>
+                  <option value="WorkflowProfiles">WorkflowProfiles</option>
+                  <option value="WorkflowProfileRelatives">WorkflowProfileRelatives</option>
+                  <option value="WorkflowStatus">WorkflowStatus</option>
+                  <option value="WorkflowStatusTwelvePeriod">WorkflowStatusTwelvePeriod</option>
+                  <option value="WorkflowAndEntityStatus">WorkflowAndEntityStatus</option>
+                  <option value="JournalsForWorkflowUnit">JournalsForWorkflowUnit</option>
+                  <option value="FormsStatusForWorkflowUnit">FormsStatusForWorkflowUnit</option>
+                  <option value="ConfirmationForWorkflowUnit">ConfirmationForWorkflowUnit</option>
+                  <option value="CertificationForWorkflowUnit">CertificationForWorkflowUnit</option>
+                  <option value="ICMatchingForWorkflowUnit">ICMatchingForWorkflowUnit</option>
+                  <option value="ICMatchingForWorkflowUnitMultiPlug">ICMatchingForWorkflowUnitMultiPlug</option>
+                  <option value="ICMatchingForWorkflowUnitMultiPeriod">ICMatchingForWorkflowUnitMultiPeriod</option>
+                  <option value="ICMatchingPlugAccountsForWorkflowUnit">ICMatchingPlugAccountsForWorkflowUnit</option>
+                </select>
+              </label>
+
+              <label class="cube-form__field cube-form__field--full" for="dp-method-query">
+                <span class="cube-form__label-line">Method query</span>
+                <span class="cube-form__hint-row">
+                  <span class="cube-form__hint">Query text passed to the data provider method (free text for now).</span>
+                </span>
+                <textarea
+                  id="dp-method-query"
+                  class="sql-editor"
+                  rows="4"
+                  placeholder="Method query to return data…"
+                  spellcheck="false"
+                ></textarea>
+              </label>
+
+              <label class="cube-form__field" for="dp-method-result-table">
+                <span class="cube-form__label-line">Result table name</span>
+                <span class="cube-form__hint-row">
+                  <span class="cube-form__hint">Optional — name for the table in the returned DataSet.</span>
+                </span>
+                <input type="text" id="dp-method-result-table" value="" placeholder="Optional" autocomplete="off" />
+              </label>
+
+              <label class="cube-form__field" for="dp-method-subst-vars">
+                <span class="cube-form__label-line">CustomSubstVars (optional)</span>
+                <span class="cube-form__hint-row" aria-hidden="true">
+                  <span class="cube-form__hint cube-form__hint--placeholder">&#160;</span>
+                </span>
+                <input
+                  type="text"
+                  id="dp-method-subst-vars"
+                  placeholder="VariableName1=[Value1],VariableName2=[Value2],…"
+                  autocomplete="off"
+                />
+              </label>
+            </div>
+
+            <div class="sql-history" id="method-history-block">
+              <h3>Recent method commands · 10 max · per application · per sign-in</h3>
+              <div id="method-history-list" class="sql-history-scroll" aria-label="Recent method commands"></div>
+            </div>
+
+            <div class="sql-run-row">
+              <button type="button" id="btn-run-method-command" class="btn-icon">
+                <i class="fa-solid fa-play" aria-hidden="true"></i>
+                Run method command
+              </button>
+            </div>
+
+            <div id="method-result" class="result-shell" hidden>
+              <div class="result-toolbar">
+                <div class="seg" role="group" aria-label="Method command result view">
+                  <button type="button" id="method-view-json" class="is-on">JSON</button>
+                  <button type="button" id="method-view-table">Table</button>
+                </div>
+                <div class="export-group">
+                  <span>Export</span>
+                  <button type="button" class="secondary small-export" id="method-export-json">JSON</button>
+                  <button type="button" class="secondary small-export" id="method-export-csv">CSV</button>
+                  <button type="button" class="secondary small-export" id="method-export-xlsx">Excel</button>
+                </div>
+              </div>
+              <div id="method-result-meta" class="result-meta"></div>
+              <div class="result-scroll">
+                <pre id="method-result-json"></pre>
+                <div id="method-result-table-wrap" class="result-table-wrap" hidden></div>
+              </div>
+            </div>
+          </section>
+
+          <section id="panel-placeholder" class="task-panel" hidden>
+            <p style="color: var(--color-text-muted)">Choose a task from the left.</p>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <script src="./app.js" defer></script>
+  </body>
+</html>

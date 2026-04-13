@@ -1,0 +1,13 @@
+{
+  "name": "onestream-rest-proxy",
+  "private": true,
+  "version": "1.0.0",
+  "description": "OneStream REST API services — static UI + Azure Functions proxy (PAT)",
+  "scripts": {
+    "build": "npm run build --prefix api",
+    "start": "npm run start --prefix api",
+    "storage": "npx --yes azurite",
+    "dev:swa-only": "npm run build --prefix api && npx --yes @azure/static-web-apps-cli start ./public --api-location ./api",
+    "dev": "npm run build --prefix api && npx --yes concurrently -k -n azurite,swa \"npx --yes azurite\" \"npx --yes wait-on tcp:127.0.0.1:10000 && npx --yes @azure/static-web-apps-cli start ./public --api-location ./api\""
+  }
+}

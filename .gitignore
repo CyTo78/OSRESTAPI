@@ -1,0 +1,13 @@
+node_modules/
+api/node_modules/
+api/dist/
+.DS_Store
+*.log
+
+# Azure Functions local secrets (do not commit)
+api/local.settings.json
+
+# Azurite local storage (optional local dev)
+__blobstorage__/
+__queuestorage__/
+__azurite_db*__.json
