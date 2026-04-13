@@ -55,15 +55,15 @@ function apiEndpoint(
   return `${origin}/${segment}/api/${route}?api-version=${encodeURIComponent(apiVersion)}`;
 }
 
-async function postOneStream(
-  pat: string,
+async function postJsonBearer(
+  bearerToken: string,
   url: string,
   body: unknown
 ): Promise<unknown> {
   const res = await fetch(url, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${normalizePat(pat)}`,
+      Authorization: `Bearer ${bearerToken}`,
       "Content-Type": "application/json",
       Accept: "application/json",
     },
@@ -94,6 +94,10 @@ async function postOneStream(
   }
 
   return data;
+}
+
+async function postOneStream(pat: string, url: string, body: unknown): Promise<unknown> {
+  return postJsonBearer(normalizePat(pat), url, body);
 }
 
 /**
@@ -270,17 +274,32 @@ export async function oneStreamExecuteStep(
 }
 
 export type GetAdoDataSetForAdapterParams = {
+  /** PAT bearer (API 5.2.x). */
   pat: string;
+  /**
+   * Bearer from Logon response `access_token` (API 7.2.0+).
+   * Required when apiVersion is 7.x; PAT is not used for the adapter POST in that case.
+   */
+  webApiAccessToken?: string;
   baseWebServerUrl: string;
   apiVersion: string;
   applicationName: string;
   adapterName: string;
   resultDataTableName: string;
   customSubstVarsAsCommaSeparatedPairs: string;
+  /** API 7.2.0+; default false. Sent as string "True" / "False" per OneStream contract. */
+  isSystemLevel?: boolean;
 };
 
+function isAdapterApiV7(apiVersion: string): boolean {
+  const major = parseInt(String(apiVersion).trim().split(".")[0] || "0", 10);
+  return major >= 7;
+}
+
 /**
- * POST .../DataProvider/GetAdoDataSetForAdapter (API 5.2.0).
+ * POST .../DataProvider/GetAdoDataSetForAdapter.
+ * API 5.2.x: PAT bearer, body includes WorkspaceName (empty).
+ * API 7.2.0+: access_token bearer, body includes IsSystemLevel; supports sync/async semantics on the server.
  */
 export async function oneStreamGetAdoDataSetForAdapter(
   params: GetAdoDataSetForAdapterParams
@@ -293,6 +312,30 @@ export async function oneStreamGetAdoDataSetForAdapter(
     "DataProvider/GetAdoDataSetForAdapter",
     params.apiVersion
   );
+
+  const v7 = isAdapterApiV7(params.apiVersion);
+
+  if (v7) {
+    const token = (params.webApiAccessToken || "").trim();
+    if (!token) {
+      throw new Error("webApiAccessToken is required for GetAdoDataSetForAdapter API 7.x (from Logon access_token)");
+    }
+    const body: Record<string, string> = {
+      BaseWebServerUrl: base,
+      IsSystemLevel: params.isSystemLevel === true ? "True" : "False",
+      AdapterName: params.adapterName.trim(),
+      ApplicationName: params.applicationName.trim(),
+    };
+    const table = params.resultDataTableName.trim();
+    if (table) {
+      body.ResultDataTableName = table;
+    }
+    const subst = params.customSubstVarsAsCommaSeparatedPairs.trim();
+    if (subst) {
+      body.CustomSubstVarsAsCommaSeparatedPairs = subst;
+    }
+    return postJsonBearer(token, url, body);
+  }
 
   const body: Record<string, string> = {
     BaseWebServerUrl: base,

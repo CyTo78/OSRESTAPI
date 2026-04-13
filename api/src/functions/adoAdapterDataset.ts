@@ -11,14 +11,23 @@ import {
   normalizePat,
 } from "../lib/onestreamClient";
 
+function adapterApiIsV7(apiVersion: string): boolean {
+  const major = parseInt(String(apiVersion).trim().split(".")[0] || "0", 10);
+  return major >= 7;
+}
+
 type AdapterBody = {
   pat?: string;
+  /** From Logon JSON `access_token`; required for adapter API 7.2.0+. */
+  webApiAccessToken?: string;
   baseWebServerUrl?: string;
   apiVersion?: string;
   applicationName?: string;
   adapterName?: string;
   resultDataTableName?: string;
   customSubstVarsAsCommaSeparatedPairs?: string;
+  /** API 7.2.0+ only; default false. */
+  isSystemLevel?: boolean;
 };
 
 async function adoAdapterDataset(
@@ -69,7 +78,20 @@ async function adoAdapterDataset(
   const apiVersion =
     typeof body.apiVersion === "string" && body.apiVersion.length > 0
       ? body.apiVersion
-      : process.env.ONESTREAM_API_VERSION_ADO_ADAPTER || "5.2.0";
+      : process.env.ONESTREAM_API_VERSION_ADO_ADAPTER || "7.2.0";
+
+  const v7 = adapterApiIsV7(apiVersion);
+  const webTok =
+    typeof body.webApiAccessToken === "string" ? body.webApiAccessToken.trim() : "";
+  if (v7 && !webTok) {
+    return withCors(request, {
+      status: 400,
+      jsonBody: {
+        error:
+          "webApiAccessToken is required for adapter API 7.x (Logon response field access_token). Sign in again if missing.",
+      },
+    });
+  }
 
   const resultDataTableName =
     typeof body.resultDataTableName === "string" ? body.resultDataTableName : "";
@@ -77,17 +99,20 @@ async function adoAdapterDataset(
     typeof body.customSubstVarsAsCommaSeparatedPairs === "string"
       ? body.customSubstVarsAsCommaSeparatedPairs
       : "";
+  const isSystemLevel = body.isSystemLevel === true;
 
   try {
     normalizePat(body.pat);
     const result = await oneStreamGetAdoDataSetForAdapter({
       pat: body.pat,
+      webApiAccessToken: v7 ? webTok : undefined,
       baseWebServerUrl: body.baseWebServerUrl,
       apiVersion,
       applicationName: body.applicationName.trim(),
       adapterName: body.adapterName.trim(),
       resultDataTableName,
       customSubstVarsAsCommaSeparatedPairs: customSubst,
+      isSystemLevel: v7 ? isSystemLevel : undefined,
     });
     return withCors(request, { status: 200, jsonBody: result });
   } catch (e) {

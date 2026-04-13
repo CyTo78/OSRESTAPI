@@ -1202,11 +1202,12 @@
           <section id="panel-dp-adapter" class="task-panel" hidden>
             <div class="sql-panel-head">
               <h2>Data adapter</h2>
-              <p><code>GetAdoDataSetForAdapter</code> · API <code>5.2.0</code></p>
+              <p><code>GetAdoDataSetForAdapter</code> · API <code>7.2.0</code></p>
             </div>
 
             <p class="dm-seq-hint">
-              Adapter names load from the application database. Pick an application in the ribbon first.
+              Uses API 7.2.0 with the Logon <code>access_token</code> (stored at sign-in). If the adapter fails, sign out
+              and sign in again. Adapter names load from the application database; pick an application in the ribbon first.
             </p>
             <div class="sql-options-row">
               <label class="wide">

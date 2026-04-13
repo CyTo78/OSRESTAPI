@@ -13,6 +13,8 @@
     PAT: "onestream_session_pat",
     BASE: "onestream_session_base",
     LOGON_SI: "onestream_session_logon_si",
+    /** Bearer for DataProvider APIs that require Logon access_token (e.g. adapter 7.2.0). */
+    WEBAPI_ACCESS_TOKEN: "onestream_session_webapi_access_token",
     APPS: "onestream_session_apps",
     API_VER: "onestream_session_api_ver",
     APP_CHOICE: "onestream_session_app_choice",
@@ -1449,12 +1451,23 @@
           loginResult.textContent = "Missing Logon SessionInfo.";
           return;
         }
+        var webTok = "";
+        if (data.access_token != null && String(data.access_token).trim() !== "") {
+          webTok = String(data.access_token).trim();
+        } else if (data.accessToken != null && String(data.accessToken).trim() !== "") {
+          webTok = String(data.accessToken).trim();
+        }
         try {
           sessionStorage.setItem(SESSION.PAT, pat);
           sessionStorage.setItem(SESSION.BASE, baseWebServerUrl);
           sessionStorage.setItem(SESSION.LOGON_SI, JSON.stringify(logonSi));
           sessionStorage.setItem(SESSION.APPS, JSON.stringify(apps || []));
           sessionStorage.setItem(SESSION.API_VER, "7.2.0");
+          if (webTok) {
+            sessionStorage.setItem(SESSION.WEBAPI_ACCESS_TOKEN, webTok);
+          } else {
+            sessionStorage.removeItem(SESSION.WEBAPI_ACCESS_TOKEN);
+          }
         } catch (err) {
           loginResult.textContent = "Could not save session: " + String(err);
           return;
@@ -2120,8 +2133,18 @@
     var pat = sessionStorage.getItem(SESSION.PAT);
     var base = sessionStorage.getItem(SESSION.BASE);
     var siJson = sessionStorage.getItem(SESSION.LOGON_SI);
+    var webApiAccessToken = sessionStorage.getItem(SESSION.WEBAPI_ACCESS_TOKEN);
     if (!pat || !base || !siJson) {
       showLogin();
+      return;
+    }
+    if (!webApiAccessToken || !String(webApiAccessToken).trim()) {
+      shell.hidden = false;
+      meta.textContent = "Sign in again";
+      pre.textContent =
+        "Data adapter (API 7.2.0) needs the Logon access_token. Sign out and sign in again, then retry.";
+      pre.style.display = "block";
+      wrap.hidden = true;
       return;
     }
 
@@ -2139,12 +2162,13 @@
     try {
       var r = await apiFetchJson("/api/adapter-dataset", {
         pat: pat,
+        webApiAccessToken: String(webApiAccessToken).trim(),
         baseWebServerUrl: base,
         applicationName: sel.value,
         adapterName: adapterName,
         resultDataTableName: resultDataTableName,
         customSubstVarsAsCommaSeparatedPairs: customSubstVarsAsCommaSeparatedPairs,
-        apiVersion: "5.2.0",
+        apiVersion: "7.2.0",
       });
       displayAdapterResult(r.res, r.data);
       if (r.res.ok) {
