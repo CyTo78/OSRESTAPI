@@ -54,7 +54,23 @@
     BusinessRule:
       "{MyBusinessRuleName}{MyDataSetName}{Name1=Value1, Name2=[Value2]}",
     CertificationForWorkflowUnit:
-      "{MyWorkflowProfileName}{Actual}{2015M1}{true}{Empty String or Filter Expression}",
+      "{Workflow Profile Name}{Scenario Name}{Time Name}{Include Descendants}{Filter}",
+    ConfirmationForWorkflowUnit:
+      "{Workflow Profile Name}{Scenario Name}{Time Name}{Include Descendants}{Filter}",
+    DataCellDetail:
+      "{Cube Name}{Entity Filter}{Scenario Name}{Time filter}{Account Filter}{Flow Filter}{IC Filter}{UD1 Filter}{UD2 Filter}{UD3 Filter}{UD4 Filter}{UD5 Filter}{UD6 Filter}{UD7 Filter}{UD8 Filter}{Filter}",
+    DataUnit:
+      "{Cube Name}{Entity Name}{Parent Name}{Cons Name}{Scenario Name}{Time Name}{View Name}{Suppress NoData}{Filter}",
+    DataUnitComparison:
+      "{Cube 1 Name}{Entity 1 Name}{Parent 1 Name}{Cons 1 Name}{Scenario 1 Name}{Time 1 Name}{Cube 2 Name}{Entity 2 Name}{Parent 2 Name}{Cons 2 Name}{Scenario 2 Name}{Time 2 Name}{View Name}{Suppress NoData}{Suppress Matches}{Filter}",
+    Dimensions:
+      "{Dimension Type or Empty String}{Filter}",
+    DimensionTypes:
+      "{Dimension Type Filter}{Filter}",
+    DirectLoadInfo:
+      "{Workflow Profile Name}{Scenario Name}{Time Name}{Filter}",
+    ExcelFile:
+      "{FileSourceType}{UrlOrFullFileName}{Sheet}{NamedRange}{UseFirstRowForColumnNames}{IncludeNumericColumns}{Filter}",
   };
 
   /** DataMgmtGroup.UniqueID matches DataMgmtStep.DataMgmtGroupID. */
