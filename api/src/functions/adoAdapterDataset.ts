@@ -16,6 +16,10 @@ function adapterApiIsV7(apiVersion: string): boolean {
   return major >= 7;
 }
 
+type LogonSiBody = {
+  XfBytes?: string;
+};
+
 type AdapterBody = {
   pat?: string;
   /** Optional Logon token when the platform returns one; else PAT is used for API 7.x. */
@@ -28,6 +32,8 @@ type AdapterBody = {
   customSubstVarsAsCommaSeparatedPairs?: string;
   /** API 7.2.0+ only; default false. */
   isSystemLevel?: boolean;
+  /** Logon SessionInfo from UI session; required for API 7.x (OpenApplication → SI on adapter call). */
+  logonSessionInfo?: LogonSiBody;
 };
 
 async function adoAdapterDataset(
@@ -84,6 +90,21 @@ async function adoAdapterDataset(
   const webTok =
     typeof body.webApiAccessToken === "string" ? body.webApiAccessToken.trim() : "";
 
+  if (v7) {
+    const si = body.logonSessionInfo;
+    const xf =
+      si && typeof si === "object" && typeof si.XfBytes === "string" ? si.XfBytes.trim() : "";
+    if (!xf) {
+      return withCors(request, {
+        status: 400,
+        jsonBody: {
+          error:
+            "logonSessionInfo with XfBytes is required for adapter API 7.x (same as Logon SessionInfo from sign-in).",
+        },
+      });
+    }
+  }
+
   const resultDataTableName =
     typeof body.resultDataTableName === "string" ? body.resultDataTableName : "";
   const customSubst =
@@ -94,6 +115,11 @@ async function adoAdapterDataset(
 
   try {
     normalizePat(body.pat);
+    const logonSi =
+      v7 && body.logonSessionInfo && typeof body.logonSessionInfo.XfBytes === "string"
+        ? { XfBytes: body.logonSessionInfo.XfBytes.trim() }
+        : undefined;
+
     const result = await oneStreamGetAdoDataSetForAdapter({
       pat: body.pat,
       webApiAccessToken: v7 && webTok ? webTok : undefined,
@@ -104,6 +130,7 @@ async function adoAdapterDataset(
       resultDataTableName,
       customSubstVarsAsCommaSeparatedPairs: customSubst,
       isSystemLevel: v7 ? isSystemLevel : undefined,
+      logonSessionInfo: logonSi,
     });
     return withCors(request, { status: 200, jsonBody: result });
   } catch (e) {

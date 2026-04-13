@@ -2168,6 +2168,17 @@
       showLogin();
       return;
     }
+    var logonSessionInfo;
+    try {
+      logonSessionInfo = JSON.parse(siJson);
+    } catch (_) {
+      showLogin();
+      return;
+    }
+    if (!logonSessionInfo || !logonSessionInfo.XfBytes) {
+      showLogin();
+      return;
+    }
 
     var resultDataTableName = resultTableEl ? String(resultTableEl.value || "").trim() : "";
     var customSubstVarsAsCommaSeparatedPairs = substEl
@@ -2189,6 +2200,7 @@
         resultDataTableName: resultDataTableName,
         customSubstVarsAsCommaSeparatedPairs: customSubstVarsAsCommaSeparatedPairs,
         apiVersion: "7.2.0",
+        logonSessionInfo: logonSessionInfo,
       };
       var webTokStored = sessionStorage.getItem(SESSION.WEBAPI_ACCESS_TOKEN);
       if (webTokStored && String(webTokStored).trim() !== "") {

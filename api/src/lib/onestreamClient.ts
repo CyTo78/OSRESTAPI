@@ -287,8 +287,13 @@ export type GetAdoDataSetForAdapterParams = {
   adapterName: string;
   resultDataTableName: string;
   customSubstVarsAsCommaSeparatedPairs: string;
-  /** API 7.2.0+; default false. Sent as string "True" / "False" per OneStream contract. */
+  /** API 7.2.0+; default false. */
   isSystemLevel?: boolean;
+  /**
+   * Logon SessionInfo from Authentication/Logon. Required for API 7.x: proxy calls
+   * Application/OpenApplication then sends Application SI on the adapter body per OneStream docs.
+   */
+  logonSessionInfo?: SessionInfo;
 };
 
 function isAdapterApiV7(apiVersion: string): boolean {
@@ -299,7 +304,7 @@ function isAdapterApiV7(apiVersion: string): boolean {
 /**
  * POST .../DataProvider/GetAdoDataSetForAdapter.
  * API 5.2.x: PAT bearer, body includes WorkspaceName (empty).
- * API 7.2.0+: body includes IsSystemLevel. Bearer is webApiAccessToken when provided, else PAT.
+ * API 7.2.0+: Bearer PAT or access_token; body per docs — OpenApplication first, then SI + booleans (no BaseWebServerUrl in body).
  */
 export async function oneStreamGetAdoDataSetForAdapter(
   params: GetAdoDataSetForAdapterParams
@@ -316,21 +321,34 @@ export async function oneStreamGetAdoDataSetForAdapter(
   const v7 = isAdapterApiV7(params.apiVersion);
 
   if (v7) {
+    const logonSi = params.logonSessionInfo;
+    if (!logonSi?.XfBytes) {
+      throw new Error(
+        "logonSessionInfo (Logon SessionInfo.XfBytes) is required for GetAdoDataSetForAdapter API 7.x"
+      );
+    }
+    const openAppApiVer = process.env.ONESTREAM_API_VERSION?.trim() || "7.2.0";
+    const { applicationSessionInfo } = await oneStreamOpenApplication({
+      pat: params.pat,
+      baseWebServerUrl: params.baseWebServerUrl,
+      apiVersion: openAppApiVer,
+      applicationName: params.applicationName.trim(),
+      logonSessionInfo: logonSi,
+    });
+
     const fromLogon = (params.webApiAccessToken || "").trim();
     const token = fromLogon || normalizePat(params.pat);
     if (!token) {
       throw new Error("PAT (or optional webApiAccessToken) is required for GetAdoDataSetForAdapter API 7.x");
     }
-    const body: Record<string, string> = {
-      BaseWebServerUrl: base,
-      IsSystemLevel: params.isSystemLevel === true ? "True" : "False",
+
+    const tableName = params.resultDataTableName.trim() || "Results";
+    const body: Record<string, unknown> = {
+      IsSystemLevel: params.isSystemLevel === true,
       AdapterName: params.adapterName.trim(),
-      ApplicationName: params.applicationName.trim(),
+      ResultDataTableName: tableName,
+      SI: applicationSessionInfo,
     };
-    const table = params.resultDataTableName.trim();
-    if (table) {
-      body.ResultDataTableName = table;
-    }
     const subst = params.customSubstVarsAsCommaSeparatedPairs.trim();
     if (subst) {
       body.CustomSubstVarsAsCommaSeparatedPairs = subst;
