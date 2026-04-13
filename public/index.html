@@ -278,7 +278,7 @@
         flex-shrink: 0;
         background: var(--color-sidebar);
         border-right: 1px solid var(--color-border);
-        padding: 0.45rem 0;
+        padding: 0.45rem 0.5rem;
         display: flex;
         flex-direction: column;
         align-items: stretch;
@@ -295,14 +295,15 @@
         width: 100%;
         padding: 0.4rem 0.75rem;
         border: none;
-        border-left: 3px solid transparent;
         background: transparent;
         color: var(--color-text);
         font: inherit;
         font-size: 0.84rem;
         text-align: left;
         cursor: pointer;
-        border-radius: 0 var(--radius) var(--radius) 0;
+        border-radius: var(--radius);
+        /* Inset accent: works with full rounding; transparent bar keeps width aligned with active */
+        box-shadow: inset 3px 0 0 transparent;
       }
       .nav-item:hover {
         background: rgba(0, 0, 0, 0.05);
@@ -312,7 +313,7 @@
       }
       .nav-item.is-active {
         background: var(--color-nav-active-bg);
-        border-left-color: var(--color-nav-active-border);
+        box-shadow: inset 3px 0 0 var(--color-nav-active-border);
         font-weight: 600;
       }
       .nav-item:disabled {
@@ -804,10 +805,12 @@
           border-left: none;
           border-bottom: 2px solid transparent;
           border-radius: var(--radius);
+          box-shadow: none;
         }
         .nav-item.is-active {
           border-left: none;
           border-bottom-color: var(--color-nav-active-border);
+          box-shadow: none;
         }
         .sidebar__tasks {
           flex: 1 1 auto;
