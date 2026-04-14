@@ -677,6 +677,26 @@
       .cube-form--method {
         row-gap: 1.05rem;
       }
+      .cube-form--cube-view {
+        row-gap: 1.05rem;
+        margin-bottom: 0.85rem;
+      }
+      .cube-form--cube-view .cube-form__field {
+        gap: 0.12rem;
+      }
+      .cube-form--cube-view .cube-form__hint-row {
+        min-height: 0;
+      }
+      /** Match one line of hint text so the bottom row’s inputs stay aligned without a tall blank band. */
+      .cube-form--cube-view .cube-form__hint-row:has(.cube-form__hint--placeholder) {
+        min-height: calc(0.72rem * 1.35);
+      }
+      .cube-form--cube-view .cube-form__toggle .cube-form__check {
+        margin-top: 0.2rem;
+      }
+      .cube-form--cube-view + .sql-editor-wrap {
+        margin-top: 0.45rem;
+      }
       .cube-form__field {
         display: flex;
         flex-direction: column;
@@ -1517,19 +1537,16 @@
               <p><code>GetAdoDataSetForCubeViewCommand</code> · API <code>5.2.0</code></p>
             </div>
 
-            <div class="cube-form" role="group" aria-label="Cube view parameters">
+            <div class="cube-form cube-form--cube-view" role="group" aria-label="Cube view parameters">
               <label class="cube-form__field cube-form__field--full" for="dp-cube-view-name">
                 <span class="cube-form__label-line">Cube view name</span>
-                <span class="cube-form__hint-row" aria-hidden="true">
-                  <span class="cube-form__hint cube-form__hint--placeholder">&#160;</span>
-                </span>
                 <select id="dp-cube-view-name">
                   <option value="">— Select cube view —</option>
                 </select>
               </label>
 
               <div class="cube-form__field cube-form__field--full cube-form__toggle">
-                <span>Result layout</span>
+                <span class="cube-form__label-line">Result layout</span>
                 <span class="cube-form__hint">When enabled, the API returns a separate data table for each cube view row.</span>
                 <label class="cube-form__check" for="dp-cube-per-row">
                   <input type="checkbox" id="dp-cube-per-row" />
