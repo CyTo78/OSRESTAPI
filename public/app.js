@@ -83,7 +83,7 @@
       "{MyWorkflowProfileName}{Actual}{Time Name (2025M1), Time Name List (2025M1,2025M2) or Time Filter (T#WFYear.Base)}{PlugAccount for Workflow Parameter Set (Exclude A#)}{Empty String or C#MyCurrencyOverride}{Empty String or V#MyViewOverride}{Empty String or A#MyPlugAccountOverride}{Empty String or true/false}{Empty String or 0.0}{Empty String or E#MyEntityOverride}{Empty String or E#MyPartnerOverride}{Empty String or MyDetailDimsOverride (F#All:O#Top:U1#All:U2#All:U3#All:U4#All:U5#All:U6#All:U7#All:U8#All)}{Empty String or Filter Expression}",
     ICMatchingForWorkflowUnitMultiPlug:
       "{MyWorkflowProfileName}{Actual}{2025M1}{Empty String (Returns All WF Plug Accounts), Single Plug Account(Plug1) or List of Plug Accounts(Plug1,Plug2) within WF Parameter Set (Exclude A#)}{Empty String or C#MyCurrencyOverride}{Empty String or V#MyViewOverride}{Empty String or true/false}{Empty String or 0.0}{Empty String or E#MyEntityOverride}{Empty String or E#MyPartnerOverride}{Empty String or MyDetailDimsOverride (F#All:O#Top:U1#All:U2#All:U3#All:U4#All:U5#All:U6#All:U7#All:U8#All)}{Empty String or Filter Expression}",
-    JournalsForWorkflowUnit:
+    JournalForWorkflowUnit:
       "{MyWorkflowProfileName}{Actual}{2025M1}{Journal Status (eg:All)}{Empty String or Filter Expression}",
     Members:
       "{Account}{MyAccountDim}{A#Root.TreeDescendants}{Empty String or Filter Expression}",
@@ -91,13 +91,17 @@
       "{Name for Unknown Scenario or Empty String}{Empty String or Filter Expression}",
     StageSummaryTargetData:
       "{MyWorkflowProfileName}{Actual}{2025M1}{Empty String or Filter Expression}",
-    UsesCubeSlicerights:
+    UserCubeSlicerights:
       "{UserName or AllUsers}{CubeName or AllCubes}{Empty String or Filter Expression}",
     UserEntityRights:
       "{UserName or AllUsers}{CubeName or AllCubes}{EntityName or AllEntities}{Empty String or Filter Expression}",
-    UsersInGroup:
+    Users:
+      "{UserName = 'Administrator'}",
+    UserScenarioRights:
+      "{UserName or AllUsers}{CubeName or AllCubes}{Empty String or Filter Expression}",
+    UsersInGroups:
       "{GroupName = 'FinanceGroup'}{Empty String or Filter Expression}",
-    UseWorkflowProfileRights:
+    UserWorkflowProfileRights:
       "{UserName or AllUsers}{ProfileName or AllProfiles}{ProfileType or AllProfiles}{Empty String or Filter Expression}",
     WorkflowAndEntityStatus:
       "{ProfileName}{ScenarioName}{2025M1}{ProfileType or AllProfiles}{RelativeType like : Descendants}{Empty String or Filter Expression}",
